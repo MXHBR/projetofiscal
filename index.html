@@ -735,23 +735,24 @@
                               </div>
                             </div>
 
-                            <template x-if="item.anotacao">
+                           <template x-if="item.anotacao">
                               <div class="text-xs rounded-lg p-2.5 sm:p-3 space-y-2 border"
-                                   :class="item.bottleneckResolved ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-200' : 'bg-amber-950/30 border-amber-500/40 text-amber-200'">
+                                   :class="item.gargaloId ? (item.bottleneckResolved ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-200' : 'bg-amber-950/30 border-amber-500/40 text-amber-200') : 'bg-slate-950/80 border-indigo-500/30 text-slate-200'">
                                 <div class="flex items-center justify-between">
-                                  <div class="flex items-center space-x-1.5 font-bold" :class="item.bottleneckResolved ? 'text-emerald-400' : 'text-amber-400'">
-                                    <i :data-lucide="item.bottleneckResolved ? 'check-circle' : 'alert-triangle'" class="w-4 h-4"></i>
-                                    <span x-text="item.bottleneckResolved ? 'Gargalo Concluído' : 'Gargalo Pendente'"></span>
+                                  <div class="flex items-center space-x-1.5 font-bold"
+                                       :class="item.gargaloId ? (item.bottleneckResolved ? 'text-emerald-400' : 'text-amber-400') : 'text-indigo-400'">
+                                    <i :data-lucide="item.gargaloId ? (item.bottleneckResolved ? 'check-circle' : 'alert-triangle') : 'file-text'" class="w-4 h-4"></i>
+                                    <span x-text="item.gargaloId ? (item.bottleneckResolved ? 'Gargalo Concluído' : 'Gargalo Pendente') : 'Anotação de Estudo'"></span>
                                   </div>
 
-                                  <template x-if="!item.bottleneckResolved">
+                                  <template x-if="item.gargaloId && !item.bottleneckResolved">
                                     <button @click="resolveBottleneckFromCard(item.gargaloId)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded text-[10px] font-semibold transition flex items-center space-x-1">
                                       <i data-lucide="check" class="w-3 h-3"></i>
                                       <span>Concluir</span>
                                     </button>
                                   </template>
                                 </div>
-                                <p class="leading-relaxed" x-text="item.anotacao"></p>
+                                <p class="leading-relaxed whitespace-pre-wrap" x-text="item.anotacao"></p>
                               </div>
                             </template>
                           </div>
@@ -1443,8 +1444,21 @@
                 </div>
 
                 <div>
-                  <label class="text-[11px] text-slate-400 block mb-1">Assunto / Tópico</label>
-                  <input type="text" x-model="item.assunto" placeholder="Ex: Lançamento Tributário" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="text-[11px] text-slate-400">Assunto / Tópico</label>
+                    <span class="text-[10px] text-indigo-400/80" x-show="getAssuntoSuggestions(modalQuestaoMateria).length > 0" x-text="`${getAssuntoSuggestions(modalQuestaoMateria).length} sugestões do edital/histórico`"></span>
+                  </div>
+                  <input type="text"
+                         x-model="item.assunto"
+                         :list="'datalist_assuntos_' + idx"
+                         autocomplete="off"
+                         placeholder="Digite ou selecione um tópico cadastrado..."
+                         class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                  <datalist :id="'datalist_assuntos_' + idx">
+                    <template x-for="sug in getAssuntoSuggestions(modalQuestaoMateria)" :key="sug">
+                      <option :value="sug"></option>
+                    </template>
+                  </datalist>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 sm:gap-3" x-show="modalQuestaoTipo !== 'Estudo Teórico'">
@@ -1466,9 +1480,17 @@
                   </div>
                 </div>
 
-                <div>
-                  <label class="text-[11px] text-slate-400 block mb-1">Anotações do Estudo / Gargalo (Opcional)</label>
-                  <textarea x-model="item.anotacao" rows="2" placeholder="Registre observações sobre o assunto, resumos rápidos ou pontos de dúvida (aparecerão na aba Desempenho)..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
+                <div class="space-y-2">
+                  <div>
+                    <label class="text-[11px] text-slate-400 block mb-1">Anotações do Estudo (Opcional)</label>
+                    <textarea x-model="item.anotacao" rows="2" placeholder="Registre resumos rápidos, observações ou dúvidas (aparecerão na aba Desempenho)..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
+                  </div>
+
+                  <label class="flex items-center space-x-2 text-xs cursor-pointer select-none pt-0.5"
+                         :class="item.isGargalo ? 'text-amber-300 font-semibold' : 'text-slate-400 hover:text-slate-300'">
+                    <input type="checkbox" x-model="item.isGargalo" class="rounded bg-slate-950 border-slate-700 text-amber-500 focus:ring-0 w-3.5 h-3.5">
+                    <span>Enviar também para o painel de <strong>Gargalos Pendentes</strong></span>
+                  </label>
                 </div>
               </div>
             </template>
@@ -1681,7 +1703,7 @@
         modalQuestaoMateria: '',
         modalQuestaoTipo: 'Resolução de Questões',
         modalQuestaoItens: [
-          { assunto: '', total: '', acertos: '', anotacao: '' }
+          { assunto: '', total: '', acertos: '', anotacao: '', isGargalo: false }
         ],
         
         showGargaloModal: false,
@@ -2535,12 +2557,37 @@
           this.confirmResolveGargalo();
         },
 
+        getAssuntoSuggestions(materiaNome) {
+          if (!materiaNome) return [];
+          const suggestionsSet = new Set();
+
+          // 1. Puxa os tópicos e subtópicos cadastrados na matéria (aba Matérias)
+          const mat = this.materias.find(m => this.isSameMateria(m.nome, materiaNome));
+          if (mat && Array.isArray(mat.topicos)) {
+            mat.topicos.forEach(t => {
+              if (t.nome && t.nome.trim()) {
+                suggestionsSet.add(t.nome.trim());
+              }
+            });
+          }
+
+          // 2. Puxa assuntos já utilizados anteriormente no histórico dessa mesma matéria
+          this.questoes.forEach(q => {
+            if (this.isSameMateria(materiaNome, q.materia) && q.assunto && q.assunto.trim()) {
+              suggestionsSet.add(q.assunto.trim());
+            }
+          });
+
+          return Array.from(suggestionsSet);
+        },
+
         addQuestaoModalItem() {
           this.modalQuestaoItens.push({
             assunto: '',
             total: '',
             acertos: '',
-            anotacao: ''
+            anotacao: '',
+            isGargalo: false
           });
           this.refreshIcons();
         },
@@ -2558,7 +2605,7 @@
           this.modalQuestaoMateria = this.materias[0] ? this.materias[0].nome : '';
           this.modalQuestaoTipo = 'Resolução de Questões';
           this.modalQuestaoItens = [
-            { assunto: '', total: '', acertos: '', anotacao: '' }
+            { assunto: '', total: '', acertos: '', anotacao: '', isGargalo: false }
           ];
           this.showQuestaoModal = true;
           this.refreshIcons();
@@ -2573,12 +2620,14 @@
           this.modalQuestaoData = q.data || new Date().toISOString().split('T')[0];
           this.modalQuestaoMateria = q.materia;
           this.modalQuestaoTipo = q.tipo || 'Resolução de Questões';
+          const linkedGargalo = this.gargalos.find(g => g.questaoId === q.id || (q.anotacao && g.materia === q.materia && g.descricao === q.anotacao && g.dataCriacao === q.data));
           this.modalQuestaoItens = [
             {
               assunto: q.assunto || '',
               total: q.total || '',
               acertos: q.acertos || '',
-              anotacao: q.anotacao || ''
+              anotacao: q.anotacao || '',
+              isGargalo: !!linkedGargalo
             }
           ];
           this.showQuestaoModal = true;
@@ -2597,6 +2646,7 @@
               const anotacaoText = formItem.anotacao ? formItem.anotacao.trim() : '';
               const totalVal = isTeoria ? 0 : (Number(formItem.total) || 0);
               const acertosVal = isTeoria ? 0 : (Number(formItem.acertos) || 0);
+              const shouldBeGargalo = !!formItem.isGargalo;
 
               item.data = dataQ;
               item.materia = this.modalQuestaoMateria;
@@ -2607,11 +2657,12 @@
               item.anotacao = anotacaoText;
 
               const existingGargalo = this.gargalos.find(g => g.questaoId === item.id);
-              if (anotacaoText) {
+              if (shouldBeGargalo) {
+                const gargaloDesc = anotacaoText || (item.assunto ? `Revisar assunto: ${item.assunto}` : `Revisão em ${this.modalQuestaoMateria}`);
                 if (existingGargalo) {
                   existingGargalo.materia = this.modalQuestaoMateria;
                   existingGargalo.titulo = item.assunto ? `Revisão: ${item.assunto}` : `Dúvida em ${this.modalQuestaoMateria}`;
-                  existingGargalo.descricao = anotacaoText;
+                  existingGargalo.descricao = gargaloDesc;
                   existingGargalo.dataCriacao = dataQ;
                 } else {
                   this.gargalos.unshift({
@@ -2619,7 +2670,7 @@
                     questaoId: item.id,
                     materia: this.modalQuestaoMateria,
                     titulo: item.assunto ? `Revisão: ${item.assunto}` : `Dúvida em ${this.modalQuestaoMateria}`,
-                    descricao: anotacaoText,
+                    descricao: gargaloDesc,
                     resolvido: false,
                     dataCriacao: dataQ,
                     dataConclusao: null,
@@ -2639,8 +2690,9 @@
               const anotacaoText = formItem.anotacao ? formItem.anotacao.trim() : '';
               const totalVal = isTeoria ? 0 : (Number(formItem.total) || 0);
               const acertosVal = isTeoria ? 0 : (Number(formItem.acertos) || 0);
+              const shouldBeGargalo = !!formItem.isGargalo;
 
-              if (itemsToSave.length > 1 && !assuntoText && totalVal === 0 && acertosVal === 0 && !anotacaoText) {
+              if (itemsToSave.length > 1 && !assuntoText && totalVal === 0 && acertosVal === 0 && !anotacaoText && !shouldBeGargalo) {
                 return;
               }
 
@@ -2661,13 +2713,14 @@
 
               this.questoes.unshift(newItem);
 
-              if (anotacaoText) {
+              if (shouldBeGargalo) {
+                const gargaloDesc = anotacaoText || (assuntoText ? `Revisar assunto: ${assuntoText}` : `Revisão em ${this.modalQuestaoMateria}`);
                 this.gargalos.unshift({
                   id: 'g_' + uniqueSuffix,
                   questaoId: newQId,
                   materia: this.modalQuestaoMateria,
                   titulo: assuntoText ? `Revisão: ${assuntoText}` : `Dúvida em ${this.modalQuestaoMateria}`,
-                  descricao: anotacaoText,
+                  descricao: gargaloDesc,
                   resolvido: false,
                   dataCriacao: dataQ,
                   dataConclusao: null,
@@ -2683,7 +2736,6 @@
           this.saveAll();
           this.refreshIcons();
         },
-
         deleteQuestaoRecord(id) {
           this.questoes = this.questoes.filter(q => q.id !== id);
           this.gargalos = this.gargalos.filter(g => g.questaoId !== id);
