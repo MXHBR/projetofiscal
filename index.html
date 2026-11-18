@@ -754,8 +754,8 @@
                                 </div>
                                 <p class="leading-relaxed whitespace-pre-wrap" x-text="item.anotacao"></p>
                               </div>
-                            </template>
-                          </div>
+                            </template>                          
+			</div>
                         </template>
                       </div>
 
@@ -2556,31 +2556,6 @@
           this.modalResolveData = new Date().toISOString().split('T')[0];
           this.confirmResolveGargalo();
         },
-
-        getAssuntoSuggestions(materiaNome) {
-          if (!materiaNome) return [];
-          const suggestionsSet = new Set();
-
-          // 1. Puxa os tópicos e subtópicos cadastrados na matéria (aba Matérias)
-          const mat = this.materias.find(m => this.isSameMateria(m.nome, materiaNome));
-          if (mat && Array.isArray(mat.topicos)) {
-            mat.topicos.forEach(t => {
-              if (t.nome && t.nome.trim()) {
-                suggestionsSet.add(t.nome.trim());
-              }
-            });
-          }
-
-          // 2. Puxa assuntos já utilizados anteriormente no histórico dessa mesma matéria
-          this.questoes.forEach(q => {
-            if (this.isSameMateria(materiaNome, q.materia) && q.assunto && q.assunto.trim()) {
-              suggestionsSet.add(q.assunto.trim());
-            }
-          });
-
-          return Array.from(suggestionsSet);
-        },
-
         addQuestaoModalItem() {
           this.modalQuestaoItens.push({
             assunto: '',
