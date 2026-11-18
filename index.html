@@ -108,7 +108,7 @@
 
       <div class="p-4 border-t border-slate-800/80 text-xs text-slate-500 flex items-center justify-between">
         <span>RFB / SEFAZ</span>
-        <span class="bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono text-[10px]">v6.5</span>
+        <span class="bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono text-[10px]">v6.6</span>
       </div>
     </aside>
 
@@ -475,79 +475,6 @@
                 </div>
               </div>
 
-              <!-- PAINEL DE HISTÓRICO DE ASSUNTOS ESTUDADOS E DESEMPENHO NA MATÉRIA -->
-              <div class="bg-slate-900/80 border border-slate-800/80 rounded-xl overflow-hidden shadow-sm backdrop-blur-sm">
-                <div class="px-4 py-3 bg-slate-850/80 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                  <button @click="showMateriaHistoryPanel = !showMateriaHistoryPanel; refreshIcons()" class="flex items-center space-x-2 text-left group">
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="showMateriaHistoryPanel && 'rotate-90'"></i>
-                    <i data-lucide="history" class="w-4 h-4 text-indigo-400"></i>
-                    <span class="text-xs font-bold text-slate-200 uppercase tracking-wider group-hover:text-white transition">Últimos Assuntos Estudados e Desempenho</span>
-                    <span class="bg-slate-900 border border-slate-700 text-indigo-300 px-2 py-0.5 rounded text-[10px] font-mono" x-text="getSelectedMateriaStudiedTopics().length"></span>
-                  </button>
-
-                  <div x-show="showMateriaHistoryPanel" class="flex items-center space-x-2">
-                    <span class="text-[11px] text-slate-400 shrink-0">Ordenar por:</span>
-                    <select x-model="materiaHistorySortBy" @change="refreshIcons()" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-[11px] text-slate-200 focus:outline-none focus:border-indigo-500">
-                      <option value="date_desc">Mais Recentes (Data)</option>
-                      <option value="date_asc">Mais Antigos (Data)</option>
-                      <option value="perf_asc">Menor Acerto (Último Desempenho)</option>
-                      <option value="perf_desc">Maior Acerto (Último Desempenho)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div x-show="showMateriaHistoryPanel" x-collapse class="p-3 sm:p-4">
-                  <template x-if="getSelectedMateriaStudiedTopics().length > 0">
-                    <div class="space-y-2 max-h-80 overflow-y-auto pr-1">
-                      <template x-for="st in getSelectedMateriaStudiedTopics()" :key="st.key">
-                        <div class="bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition">
-                          <div class="space-y-1 min-w-0 flex-1">
-                            <div class="flex flex-wrap items-center gap-1.5">
-                              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 flex items-center space-x-1">
-                                <i data-lucide="calendar" class="w-3 h-3 text-indigo-400"></i>
-                                <span x-text="formatDate(st.lastDate)"></span>
-                              </span>
-                              <span class="text-[10px] font-semibold px-2 py-0.5 rounded border"
-                                    :class="st.lastTipo === 'Estudo Teórico' ? 'text-sky-300 bg-sky-600/10 border-sky-500/20' : 'text-indigo-300 bg-indigo-600/10 border-indigo-500/20'"
-                                    x-text="st.lastTipo"></span>
-                              <span x-show="st.sessionsCount > 1" class="text-[10px] font-mono text-slate-400 bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-800" x-text="`${st.sessionsCount} sessões`"></span>
-                            </div>
-                            <p class="text-xs font-bold text-slate-100 break-words" x-text="st.assunto"></p>
-                          </div>
-
-                          <div class="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800/60 shrink-0">
-                            <template x-if="st.lastHasQuestions">
-                              <div class="flex flex-col sm:items-end space-y-1">
-                                <div class="flex items-center space-x-1.5">
-                                  <span class="text-[10px] text-slate-400">Último:</span>
-                                  <span class="text-xs font-extrabold font-mono px-2 py-0.5 rounded" :class="getCustomProgressBarText(st.lastAccuracy)" x-text="`${st.lastAcertos}/${st.lastTotal} (${st.lastAccuracy}%)`"></span>
-                                </div>
-                                <template x-if="st.sessionsCount > 1 && st.cumTotal > st.lastTotal">
-                                  <span class="text-[10px] font-mono text-slate-400" x-text="`Acumulado: ${st.cumAcertos}/${st.cumTotal} (${st.cumAccuracy}%)`"></span>
-                                </template>
-                              </div>
-                            </template>
-
-                            <template x-if="!st.lastHasQuestions">
-                              <div class="flex flex-col sm:items-end space-y-1">
-                                <span class="text-[11px] font-mono text-sky-400/90 bg-sky-950/40 border border-sky-500/20 px-2 py-0.5 rounded">Apenas Teoria</span>
-                                <template x-if="st.cumTotal > 0">
-                                  <span class="text-[10px] font-mono text-slate-400" x-text="`Histórico: ${st.cumAcertos}/${st.cumTotal} (${st.cumAccuracy}%)`"></span>
-                                </template>
-                              </div>
-                            </template>
-                          </div>
-                        </div>
-                      </template>
-                    </div>
-                  </template>
-
-                  <div x-show="getSelectedMateriaStudiedTopics().length === 0" class="py-6 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
-                    Nenhum registro de estudo ou questões encontrado para <span class="text-slate-300 font-semibold" x-text="getSelectedMateria().nome"></span> ainda.
-                  </div>
-                </div>
-              </div>
-
               <div class="bg-slate-900/80 border border-slate-800/80 rounded-xl overflow-hidden shadow-sm backdrop-blur-sm">
                 <div class="px-4 py-3 bg-slate-850/80 border-b border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-400">
                   <span>Estrutura de Conteúdo</span>
@@ -843,6 +770,109 @@
                 <i data-lucide="plus" class="w-4 h-4"></i>
                 <span>Registrar Neste Dia</span>
               </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 4: DESEMPENHO E HISTÓRICO (NOVA ABA) ==================== -->
+        <div x-show="activeTab === 'desempenho'" x-cloak class="space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-100">Controle de Desempenho e Histórico</h2>
+              <p class="text-slate-400 text-xs sm:text-sm">Visualize o histórico completo dos assuntos estudados, filtre por matéria e organize por data ou desempenho para planejar seus estudos.</p>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+              <button @click="setActiveTab('questoes')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition shadow">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Novo Registro</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- FILTROS E ORDENAÇÃO -->
+          <div class="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 shadow-sm backdrop-blur-sm grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs text-slate-400 block mb-1 font-semibold">Filtrar por Matéria:</label>
+              <select x-model="historyFilterMateria" @change="refreshIcons()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="ALL">Todas as Matérias</option>
+                <template x-for="m in materias" :key="'hmat_' + m.id">
+                  <option :value="m.nome" x-text="m.nome"></option>
+                </template>
+              </select>
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-400 block mb-1 font-semibold">Ordenar por:</label>
+              <select x-model="historySortBy" @change="refreshIcons()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="date_desc">Mais Recentes (Data)</option>
+                <option value="date_asc">Mais Antigos (Data)</option>
+                <option value="perf_asc">Menor Acerto (Desempenho)</option>
+                <option value="perf_desc">Maior Acerto (Desempenho)</option>
+                <option value="materia_asc">Nome da Matéria (A-Z)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- LISTAGEM DE HISTÓRICO DE ASSUNTOS -->
+          <div class="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 shadow-sm backdrop-blur-sm space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+              <span class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center space-x-2">
+                <i data-lucide="history" class="w-4 h-4 text-indigo-400"></i>
+                <span>Histórico Unificado de Assuntos e Desempenho</span>
+              </span>
+              <span class="bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded text-xs font-mono" x-text="getFilteredGlobalHistory().length"></span>
+            </div>
+
+            <div class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+              <template x-for="st in getFilteredGlobalHistory()" :key="st.uniqueKey">
+                <div class="bg-slate-950/80 border border-slate-800/90 hover:border-slate-700 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition">
+                  <div class="space-y-1.5 min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded border text-slate-200 flex items-center space-x-1" :style="`background-color: ${getMateriaColor(st.materia)}22; border-color: ${getMateriaColor(st.materia)}55`">
+                        <span class="w-2 h-2 rounded-full shrink-0" :style="`background-color: ${getMateriaColor(st.materia)}`"></span>
+                        <span x-text="st.materia"></span>
+                      </span>
+                      <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 flex items-center space-x-1">
+                        <i data-lucide="calendar" class="w-3 h-3 text-indigo-400"></i>
+                        <span x-text="formatDate(st.lastDate)"></span>
+                      </span>
+                      <span class="text-[10px] font-semibold px-2 py-0.5 rounded border"
+                            :class="st.lastTipo === 'Estudo Teórico' ? 'text-sky-300 bg-sky-600/10 border-sky-500/20' : 'text-indigo-300 bg-indigo-600/10 border-indigo-500/20'"
+                            x-text="st.lastTipo"></span>
+                      <span x-show="st.sessionsCount > 1" class="text-[10px] font-mono text-slate-400 bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-800" x-text="`${st.sessionsCount} sessões`"></span>
+                    </div>
+                    <p class="text-xs font-bold text-slate-100 break-words" x-text="st.assunto"></p>
+                  </div>
+
+                  <div class="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800/60 shrink-0">
+                    <template x-if="st.lastHasQuestions">
+                      <div class="flex flex-col sm:items-end space-y-1">
+                        <div class="flex items-center space-x-1.5">
+                          <span class="text-[10px] text-slate-400">Último:</span>
+                          <span class="text-xs font-extrabold font-mono px-2 py-0.5 rounded" :class="getCustomProgressBarText(st.lastAccuracy)" x-text="`${st.lastAcertos}/${st.lastTotal} (${st.lastAccuracy}%)`"></span>
+                        </div>
+                        <template x-if="st.sessionsCount > 1 && st.cumTotal > st.lastTotal">
+                          <span class="text-[10px] font-mono text-slate-400" x-text="`Acumulado: ${st.cumAcertos}/${st.cumTotal} (${st.cumAccuracy}%)`"></span>
+                        </template>
+                      </div>
+                    </template>
+
+                    <template x-if="!st.lastHasQuestions">
+                      <div class="flex flex-col sm:items-end space-y-1">
+                        <span class="text-[11px] font-mono text-sky-400/90 bg-sky-950/40 border border-sky-500/20 px-2 py-0.5 rounded">Apenas Teoria</span>
+                        <template x-if="st.cumTotal > 0">
+                          <span class="text-[10px] font-mono text-slate-400" x-text="`Histórico: ${st.cumAcertos}/${st.cumTotal} (${st.cumAccuracy}%)`"></span>
+                        </template>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+            <div x-show="getFilteredGlobalHistory().length === 0" class="py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
+              Nenhum registro de estudo encontrado com os filtros selecionados.
             </div>
           </div>
         </div>
@@ -1456,6 +1486,7 @@
           { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
           { id: 'materias', label: 'Matérias', icon: 'book-open' },
           { id: 'questoes', label: 'Questões & Estudos', icon: 'target' },
+          { id: 'desempenho', label: 'Desempenho', icon: 'history' },
           { id: 'gargalos', label: 'Gargalos', icon: 'alert-triangle' }
         ],
 
@@ -1475,8 +1506,8 @@
         draggedMateriaId: null,
         newTopicText: '',
 
-        showMateriaHistoryPanel: true,
-        materiaHistorySortBy: 'date_desc',
+        historyFilterMateria: 'ALL',
+        historySortBy: 'date_desc',
         
         questoes: [],
         estudos: [], 
@@ -1593,24 +1624,21 @@
           return qNorm === targetNorm || qNorm.includes(targetNorm) || targetNorm.includes(qNorm);
         },
 
-        getSelectedMateriaStudiedTopics() {
-          const mat = this.getSelectedMateria();
-          if (!mat || !mat.nome) return [];
+        getFilteredGlobalHistory() {
+          let records = this.questoes;
+          if (this.historyFilterMateria !== 'ALL') {
+            records = records.filter(q => this.isSameMateria(this.historyFilterMateria, q.materia));
+          }
 
-          const matchingRecords = this.questoes.filter(q => this.isSameMateria(mat.nome, q.materia));
-          if (matchingRecords.length === 0) return [];
+          if (records.length === 0) return [];
 
-          // Agrupa registros por assunto normalizado para mostrar o último estudo, último desempenho e acumulado
           const topicMap = {};
 
-          matchingRecords.forEach((rec, index) => {
+          records.forEach((rec, index) => {
             const rawAssunto = (rec.assunto && rec.assunto.trim()) ? rec.assunto.trim() : 'Geral / Sem assunto especificado';
-            const normKey = rawAssunto
-              .toUpperCase()
-              .normalize("NFD")
-              .replace(/[\u0300-\u036f]/g, "")
-              .replace(/\s+/g, ' ')
-              .trim();
+            const recMateria = rec.materia || 'Geral';
+            
+            const normKey = `${this.normalizeMateriaName(recMateria)}_${rawAssunto.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, ' ').trim()}`;
 
             const recDate = rec.data || '1970-01-01';
             const recTotal = Number(rec.total) || 0;
@@ -1618,10 +1646,11 @@
 
             if (!topicMap[normKey]) {
               topicMap[normKey] = {
-                key: normKey,
+                uniqueKey: normKey,
+                materia: recMateria,
                 assunto: rawAssunto,
                 lastDate: recDate,
-                lastIndex: index, // Como questoes usa unshift, menor índice = registro mais recente na mesma data
+                lastIndex: index,
                 lastTipo: rec.tipo || (recTotal > 0 ? 'Resolução de Questões' : 'Estudo Teórico'),
                 lastTotal: recTotal,
                 lastAcertos: recAcertos,
@@ -1635,9 +1664,7 @@
               entry.cumAcertos += recAcertos;
               entry.sessionsCount += 1;
 
-              // Verifica se este registro é mais recente que o armazenado
               if (recDate > entry.lastDate || (recDate === entry.lastDate && index < entry.lastIndex)) {
-                entry.assunto = rawAssunto;
                 entry.lastDate = recDate;
                 entry.lastIndex = index;
                 entry.lastTipo = rec.tipo || (recTotal > 0 ? 'Resolução de Questões' : 'Estudo Teórico');
@@ -1659,18 +1686,17 @@
             };
           });
 
-          // Ordenação conforme critério escolhido pelo usuário
-          if (this.materiaHistorySortBy === 'date_desc') {
+          if (this.historySortBy === 'date_desc') {
             list.sort((a, b) => {
               if (b.lastDate !== a.lastDate) return b.lastDate.localeCompare(a.lastDate);
               return a.lastIndex - b.lastIndex;
             });
-          } else if (this.materiaHistorySortBy === 'date_asc') {
+          } else if (this.historySortBy === 'date_asc') {
             list.sort((a, b) => {
               if (a.lastDate !== b.lastDate) return a.lastDate.localeCompare(b.lastDate);
               return b.lastIndex - a.lastIndex;
             });
-          } else if (this.materiaHistorySortBy === 'perf_asc') {
+          } else if (this.historySortBy === 'perf_asc') {
             list.sort((a, b) => {
               if (a.lastAccuracy === null && b.lastAccuracy === null) return b.lastDate.localeCompare(a.lastDate);
               if (a.lastAccuracy === null) return 1;
@@ -1678,7 +1704,7 @@
               if (a.lastAccuracy !== b.lastAccuracy) return a.lastAccuracy - b.lastAccuracy;
               return b.lastDate.localeCompare(a.lastDate);
             });
-          } else if (this.materiaHistorySortBy === 'perf_desc') {
+          } else if (this.historySortBy === 'perf_desc') {
             list.sort((a, b) => {
               if (a.lastAccuracy === null && b.lastAccuracy === null) return b.lastDate.localeCompare(a.lastDate);
               if (a.lastAccuracy === null) return 1;
@@ -1686,6 +1712,8 @@
               if (b.lastAccuracy !== a.lastAccuracy) return b.lastAccuracy - a.lastAccuracy;
               return b.lastDate.localeCompare(a.lastDate);
             });
+          } else if (this.historySortBy === 'materia_asc') {
+            list.sort((a, b) => a.materia.localeCompare(b.materia));
           }
 
           return list;
@@ -2104,7 +2132,7 @@
         },
 
         getMateriaColor(mName) {
-          const m = this.materias.find(item => item.nome === mName);
+          const m = this.materias.find(item => this.isSameMateria(item.nome, mName));
           return m ? (m.cor || '#6366f1') : '#6366f1';
         },
 
