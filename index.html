@@ -108,7 +108,7 @@
 
       <div class="p-4 border-t border-slate-800/80 text-xs text-slate-500 flex items-center justify-between">
         <span>RFB / SEFAZ</span>
-        <span class="bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono text-[10px]">v6.3</span>
+        <span class="bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono text-[10px]">v6.4</span>
       </div>
     </aside>
 
@@ -1148,15 +1148,30 @@
     </div>
   </div>
 
-  <!-- Modal Registrar / Editar Treino -->
+  <!-- Modal Registrar / Editar Treino (MÚLTIPLOS ASSUNTOS SUPORTADOS) -->
   <div x-show="showQuestaoModal" x-cloak class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 w-full max-w-md space-y-3 sm:space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <h3 class="font-bold text-slate-100 text-base" x-text="editingQuestaoId ? 'Editar Registro' : 'Registrar Estudo / Questões'"></h3>
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 w-full max-w-lg space-y-3 sm:space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <h3 class="font-bold text-slate-100 text-base" x-text="editingQuestaoId ? 'Editar Registro' : 'Registrar Estudo / Questões'"></h3>
+        <button @click="showQuestaoModal = false" class="text-slate-400 hover:text-slate-200 p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+
       <div class="space-y-3">
-        <div>
-          <label class="text-xs text-slate-400 block mb-1">Data</label>
-          <input type="date" x-model="modalQuestaoData" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">Data</label>
+            <input type="date" x-model="modalQuestaoData" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">Tipo de Registro</label>
+            <select x-model="modalQuestaoTipo" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="Resolução de Questões">Resolução de Questões</option>
+              <option value="Estudo Teórico">Estudo Teórico</option>
+              <option value="Teoria & Questões">Teoria & Questões</option>
+            </select>
+          </div>
         </div>
+
         <div>
           <label class="text-xs text-slate-400 block mb-1">Matéria</label>
           <select x-model="modalQuestaoMateria" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
@@ -1165,46 +1180,66 @@
             </template>
           </select>
         </div>
-        <div>
-          <label class="text-xs text-slate-400 block mb-1">Tipo de Registro</label>
-          <select x-model="modalQuestaoTipo" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-            <option value="Resolução de Questões">Resolução de Questões</option>
-            <option value="Estudo Teórico">Estudo Teórico</option>
-            <option value="Teoria & Questões">Teoria & Questões</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs text-slate-400 block mb-1">Assunto / Tópico</label>
-          <input type="text" x-model="modalQuestaoAssunto" placeholder="Ex: Lançamento Tributário" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-        </div>
-        
-        <div class="grid grid-cols-2 gap-2 sm:gap-3" x-show="modalQuestaoTipo !== 'Estudo Teórico'">
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">Total</label>
-            <div class="flex items-center space-x-1">
-              <input type="number" x-model.number="modalQuestaoTotal" placeholder="0" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-              <button @click="modalQuestaoTotal = Math.max(0, (Number(modalQuestaoTotal)||0) - 1)" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-2 rounded-lg text-xs font-bold transition border border-slate-700">-1</button>
-              <button @click="modalQuestaoTotal = (Number(modalQuestaoTotal)||0) + 1" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-2 rounded-lg text-xs font-bold transition shadow">+1</button>
-            </div>
-          </div>
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">Acertos</label>
-            <div class="flex items-center space-x-1">
-              <input type="number" x-model.number="modalQuestaoAcertos" placeholder="0" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-              <button @click="modalQuestaoAcertos = Math.max(0, (Number(modalQuestaoAcertos)||0) - 1)" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-2 rounded-lg text-xs font-bold transition border border-slate-700">-1</button>
-              <button @click="modalQuestaoAcertos = (Number(modalQuestaoAcertos)||0) + 1" type="button" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-2 rounded-lg text-xs font-bold transition shadow">+1</button>
-            </div>
-          </div>
-        </div>
 
-        <div>
-          <label class="text-xs text-slate-400 block mb-1">Anotações / Gargalo</label>
-          <textarea x-model="modalQuestaoAnotacao" rows="2" placeholder="Descreva os pontos em que errou..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
+        <!-- LISTA DINÂMICA DE ASSUNTOS E QUESTÕES -->
+        <div class="space-y-2.5 pt-1">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-semibold text-slate-300" x-text="editingQuestaoId ? 'Detalhes do Assunto' : `Assuntos e Questões (${modalQuestaoItens.length})`"></label>
+            <button x-show="!editingQuestaoId" @click="addQuestaoModalItem()" type="button" class="text-[11px] font-semibold bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-lg flex items-center space-x-1 transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>Adicionar Assunto</span>
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <template x-for="(item, idx) in modalQuestaoItens" :key="idx">
+              <div class="bg-slate-850/90 border border-slate-800 rounded-xl p-3 space-y-2.5 relative">
+                <div class="flex items-center justify-between" x-show="!editingQuestaoId && modalQuestaoItens.length > 1">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 font-mono" x-text="`Assunto #${idx + 1}`"></span>
+                  <button @click="removeQuestaoModalItem(idx)" type="button" class="text-slate-500 hover:text-rose-400 p-0.5 transition" title="Remover este assunto">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+
+                <div>
+                  <label class="text-[11px] text-slate-400 block mb-1">Assunto / Tópico</label>
+                  <input type="text" x-model="item.assunto" placeholder="Ex: Lançamento Tributário" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 sm:gap-3" x-show="modalQuestaoTipo !== 'Estudo Teórico'">
+                  <div>
+                    <label class="text-[11px] text-slate-400 block mb-1">Total de Questões</label>
+                    <div class="flex items-center space-x-1">
+                      <input type="number" x-model.number="item.total" placeholder="0" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                      <button @click="item.total = Math.max(0, (Number(item.total)||0) - 1)" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1.5 rounded-lg text-xs font-bold transition border border-slate-700">-1</button>
+                      <button @click="item.total = (Number(item.total)||0) + 1" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1.5 rounded-lg text-xs font-bold transition shadow">+1</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="text-[11px] text-slate-400 block mb-1">Acertos</label>
+                    <div class="flex items-center space-x-1">
+                      <input type="number" x-model.number="item.acertos" placeholder="0" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                      <button @click="item.acertos = Math.max(0, (Number(item.acertos)||0) - 1)" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1.5 rounded-lg text-xs font-bold transition border border-slate-700">-1</button>
+                      <button @click="item.acertos = (Number(item.acertos)||0) + 1" type="button" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1.5 rounded-lg text-xs font-bold transition shadow">+1</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="text-[11px] text-slate-400 block mb-1">Anotações / Gargalo (Opcional)</label>
+                  <textarea x-model="item.anotacao" rows="2" placeholder="Descreva os pontos em que errou ou dúvidas..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+              </div>
+            </template>
+          </div>
         </div>
       </div>
-      <div class="flex justify-end space-x-2 pt-2">
+
+      <div class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
         <button @click="showQuestaoModal = false" class="px-3.5 py-1.5 text-xs text-slate-400 hover:text-slate-200">Cancelar</button>
-        <button @click="saveQuestaoModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-lg text-xs font-semibold">Salvar</button>
+        <button @click="saveQuestaoModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-lg text-xs font-semibold">
+          <span x-text="editingQuestaoId ? 'Salvar Alterações' : (modalQuestaoItens.length > 1 ? `Salvar ${modalQuestaoItens.length} Assuntos` : 'Salvar')"></span>
+        </button>
       </div>
     </div>
   </div>
@@ -1397,10 +1432,9 @@
         modalQuestaoData: new Date().toISOString().split('T')[0],
         modalQuestaoMateria: '',
         modalQuestaoTipo: 'Resolução de Questões',
-        modalQuestaoAssunto: '',
-        modalQuestaoTotal: '',
-        modalQuestaoAcertos: '',
-        modalQuestaoAnotacao: '',
+        modalQuestaoItens: [
+          { assunto: '', total: '', acertos: '', anotacao: '' }
+        ],
         
         showGargaloModal: false,
         modalGargaloMateria: '',
@@ -1929,74 +1963,73 @@
           const activeGargalos = this.gargalos.filter(g => !g.resolvido);
 
           if (this.timelinePeriod !== 'range') {
-  for (let i = 0; i < limitDays; i++) {
-    const d = new Date();
-    d.setDate(today.getDate() - i);
-    const ano = d.getFullYear();
-    const mes = String(d.getMonth() + 1).padStart(2, '0');
-    const dia = String(d.getDate()).padStart(2, '0');
-    const dateStr = `${ano}-${mes}-${dia}`;
-    const isToday = i === 0;
-    const dayOfWeek = this.getDayOfWeekShort(dateStr);
-    const formattedDate = `${dia}/${mes}/${String(ano).slice(-2)}`;
+            for (let i = 0; i < limitDays; i++) {
+              const d = new Date();
+              d.setDate(today.getDate() - i);
+              const ano = d.getFullYear();
+              const mes = String(d.getMonth() + 1).padStart(2, '0');
+              const dia = String(d.getDate()).padStart(2, '0');
+              const dateStr = `${ano}-${mes}-${dia}`;
+              const isToday = i === 0;
+              const dayOfWeek = this.getDayOfWeekShort(dateStr);
+              const formattedDate = `${dia}/${mes}/${String(ano).slice(-2)}`;
 
-    const matchedQ = this.questoes.filter(q => q.data === dateStr);
-    const materiasSet = [...new Set(matchedQ.map(q => q.materia))];
+              const matchedQ = this.questoes.filter(q => q.data === dateStr);
+              const materiasSet = [...new Set(matchedQ.map(q => q.materia))];
 
-    const dayActiveGargalos = activeGargalos.filter(g => g.dataCriacao === dateStr);
-    const hasActiveBottleneck = dayActiveGargalos.length > 0;
-    const bottleneckMaterias = [...new Set(dayActiveGargalos.map(g => g.materia))];
+              const dayActiveGargalos = activeGargalos.filter(g => g.dataCriacao === dateStr);
+              const hasActiveBottleneck = dayActiveGargalos.length > 0;
+              const bottleneckMaterias = [...new Set(dayActiveGargalos.map(g => g.materia))];
 
-    cards.push({
-      dateStr,
-      dayOfWeek,
-      formattedDate,
-      isToday,
-      hasRecords: materiasSet.length > 0,
-      materias: materiasSet,
-      hasActiveBottleneck,
-      bottleneckMaterias
-    });
-  }
-} else {
-  if (!this.timelineDateStart) this.timelineDateStart = new Date().toISOString().split('T')[0];
-  if (!this.timelineDateEnd) this.timelineDateEnd = this.timelineDateStart;
+              cards.push({
+                dateStr,
+                dayOfWeek,
+                formattedDate,
+                isToday,
+                hasRecords: materiasSet.length > 0,
+                materias: materiasSet,
+                hasActiveBottleneck,
+                bottleneckMaterias
+              });
+            }
+          } else {
+            if (!this.timelineDateStart) this.timelineDateStart = new Date().toISOString().split('T')[0];
+            if (!this.timelineDateEnd) this.timelineDateEnd = this.timelineDateStart;
 
-  // Começa da data final (mais recente) e anda para trás até a data inicial
-  let curr = new Date(this.timelineDateEnd + 'T00:00:00');
-  const limit = new Date(this.timelineDateStart + 'T00:00:00');
-  let count = 0;
+            let curr = new Date(this.timelineDateEnd + 'T00:00:00');
+            const limit = new Date(this.timelineDateStart + 'T00:00:00');
+            let count = 0;
 
-  while (curr >= limit && count < 30) {
-    const ano = curr.getFullYear();
-    const mes = String(curr.getMonth() + 1).padStart(2, '0');
-    const dia = String(curr.getDate()).padStart(2, '0');
-    const dateStr = `${ano}-${mes}-${dia}`;
-    const dayOfWeek = this.getDayOfWeekShort(dateStr);
-    const formattedDate = `${dia}/${mes}/${String(ano).slice(-2)}`;
+            while (curr >= limit && count < 30) {
+              const ano = curr.getFullYear();
+              const mes = String(curr.getMonth() + 1).padStart(2, '0');
+              const dia = String(curr.getDate()).padStart(2, '0');
+              const dateStr = `${ano}-${mes}-${dia}`;
+              const dayOfWeek = this.getDayOfWeekShort(dateStr);
+              const formattedDate = `${dia}/${mes}/${String(ano).slice(-2)}`;
 
-    const matchedQ = this.questoes.filter(q => q.data === dateStr);
-    const materiasSet = [...new Set(matchedQ.map(q => q.materia))];
+              const matchedQ = this.questoes.filter(q => q.data === dateStr);
+              const materiasSet = [...new Set(matchedQ.map(q => q.materia))];
 
-    const dayActiveGargalos = activeGargalos.filter(g => g.dataCriacao === dateStr);
-    const hasActiveBottleneck = dayActiveGargalos.length > 0;
-    const bottleneckMaterias = [...new Set(dayActiveGargalos.map(g => g.materia))];
+              const dayActiveGargalos = activeGargalos.filter(g => g.dataCriacao === dateStr);
+              const hasActiveBottleneck = dayActiveGargalos.length > 0;
+              const bottleneckMaterias = [...new Set(dayActiveGargalos.map(g => g.materia))];
 
-    cards.push({
-      dateStr,
-      dayOfWeek,
-      formattedDate,
-      isToday: false,
-      hasRecords: materiasSet.length > 0,
-      materias: materiasSet,
-      hasActiveBottleneck,
-      bottleneckMaterias
-    });
+              cards.push({
+                dateStr,
+                dayOfWeek,
+                formattedDate,
+                isToday: false,
+                hasRecords: materiasSet.length > 0,
+                materias: materiasSet,
+                hasActiveBottleneck,
+                bottleneckMaterias
+              });
 
-    curr.setDate(curr.getDate() - 1);
-    count++;
-  }
-}
+              curr.setDate(curr.getDate() - 1);
+              count++;
+            }
+          }
           return cards;
         },
 
@@ -2061,16 +2094,33 @@
           this.confirmResolveGargalo();
         },
 
+        addQuestaoModalItem() {
+          this.modalQuestaoItens.push({
+            assunto: '',
+            total: '',
+            acertos: '',
+            anotacao: ''
+          });
+          this.refreshIcons();
+        },
+
+        removeQuestaoModalItem(index) {
+          if (this.modalQuestaoItens.length > 1) {
+            this.modalQuestaoItens.splice(index, 1);
+            this.refreshIcons();
+          }
+        },
+
         openAddQuestaoModalForDate(dateStr) {
           this.editingQuestaoId = null;
           this.modalQuestaoData = dateStr || new Date().toISOString().split('T')[0];
           this.modalQuestaoMateria = this.materias[0] ? this.materias[0].nome : '';
           this.modalQuestaoTipo = 'Resolução de Questões';
-          this.modalQuestaoAssunto = '';
-          this.modalQuestaoTotal = '';
-          this.modalQuestaoAcertos = '';
-          this.modalQuestaoAnotacao = '';
+          this.modalQuestaoItens = [
+            { assunto: '', total: '', acertos: '', anotacao: '' }
+          ];
           this.showQuestaoModal = true;
+          this.refreshIcons();
         },
 
         openAddQuestaoModal() {
@@ -2082,27 +2132,35 @@
           this.modalQuestaoData = q.data || new Date().toISOString().split('T')[0];
           this.modalQuestaoMateria = q.materia;
           this.modalQuestaoTipo = q.tipo || 'Resolução de Questões';
-          this.modalQuestaoAssunto = q.assunto || '';
-          this.modalQuestaoTotal = q.total || '';
-          this.modalQuestaoAcertos = q.acertos || '';
-          this.modalQuestaoAnotacao = q.anotacao || '';
+          this.modalQuestaoItens = [
+            {
+              assunto: q.assunto || '',
+              total: q.total || '',
+              acertos: q.acertos || '',
+              anotacao: q.anotacao || ''
+            }
+          ];
           this.showQuestaoModal = true;
+          this.refreshIcons();
         },
 
         saveQuestaoModal() {
           if (!this.modalQuestaoMateria) return;
           const dataQ = this.modalQuestaoData || new Date().toISOString().split('T')[0];
-          const anotacaoText = this.modalQuestaoAnotacao ? this.modalQuestaoAnotacao.trim() : '';
-          const totalVal = this.modalQuestaoTipo === 'Estudo Teórico' ? 0 : (Number(this.modalQuestaoTotal) || 0);
-          const acertosVal = this.modalQuestaoTipo === 'Estudo Teórico' ? 0 : (Number(this.modalQuestaoAcertos) || 0);
+          const isTeoria = this.modalQuestaoTipo === 'Estudo Teórico';
 
           if (this.editingQuestaoId) {
             const item = this.questoes.find(q => q.id === this.editingQuestaoId);
-            if (item) {
+            const formItem = this.modalQuestaoItens[0];
+            if (item && formItem) {
+              const anotacaoText = formItem.anotacao ? formItem.anotacao.trim() : '';
+              const totalVal = isTeoria ? 0 : (Number(formItem.total) || 0);
+              const acertosVal = isTeoria ? 0 : (Number(formItem.acertos) || 0);
+
               item.data = dataQ;
               item.materia = this.modalQuestaoMateria;
               item.tipo = this.modalQuestaoTipo;
-              item.assunto = this.modalQuestaoAssunto;
+              item.assunto = formItem.assunto ? formItem.assunto.trim() : '';
               item.total = totalVal;
               item.acertos = acertosVal;
               item.anotacao = anotacaoText;
@@ -2111,15 +2169,15 @@
               if (anotacaoText) {
                 if (existingGargalo) {
                   existingGargalo.materia = this.modalQuestaoMateria;
-                  existingGargalo.titulo = this.modalQuestaoAssunto ? `Revisão: ${this.modalQuestaoAssunto}` : `Dúvida em ${this.modalQuestaoMateria}`;
+                  existingGargalo.titulo = item.assunto ? `Revisão: ${item.assunto}` : `Dúvida em ${this.modalQuestaoMateria}`;
                   existingGargalo.descricao = anotacaoText;
                   existingGargalo.dataCriacao = dataQ;
                 } else {
                   this.gargalos.unshift({
-                    id: 'g_' + Date.now(),
+                    id: 'g_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
                     questaoId: item.id,
                     materia: this.modalQuestaoMateria,
-                    titulo: this.modalQuestaoAssunto ? `Revisão: ${this.modalQuestaoAssunto}` : `Dúvida em ${this.modalQuestaoMateria}`,
+                    titulo: item.assunto ? `Revisão: ${item.assunto}` : `Dúvida em ${this.modalQuestaoMateria}`,
                     descricao: anotacaoText,
                     resolvido: false,
                     dataCriacao: dataQ,
@@ -2134,40 +2192,57 @@
               }
             }
           } else {
-            const newQId = 'q_' + Date.now();
-            const newItem = {
-              id: newQId,
-              data: dataQ,
-              materia: this.modalQuestaoMateria,
-              tipo: this.modalQuestaoTipo,
-              assunto: this.modalQuestaoAssunto,
-              total: totalVal,
-              acertos: acertosVal,
-              anotacao: anotacaoText,
-              importId: null
-            };
+            // Salva múltiplos assuntos da mesma sessão em ordem reversa para manter a ordem cronológica inserida no unshift
+            const itemsToSave = [...this.modalQuestaoItens].reverse();
+            itemsToSave.forEach((formItem, idx) => {
+              const assuntoText = formItem.assunto ? formItem.assunto.trim() : '';
+              const anotacaoText = formItem.anotacao ? formItem.anotacao.trim() : '';
+              const totalVal = isTeoria ? 0 : (Number(formItem.total) || 0);
+              const acertosVal = isTeoria ? 0 : (Number(formItem.acertos) || 0);
 
-            this.questoes.unshift(newItem);
+              // Ignora blocos completamente vazios caso haja mais de 1 bloco
+              if (itemsToSave.length > 1 && !assuntoText && totalVal === 0 && acertosVal === 0 && !anotacaoText) {
+                return;
+              }
 
-            if (anotacaoText) {
-              this.gargalos.unshift({
-                id: 'g_' + Date.now(),
-                questaoId: newQId,
+              const uniqueSuffix = Date.now() + '_' + idx + '_' + Math.random().toString(36).substr(2, 4);
+              const newQId = 'q_' + uniqueSuffix;
+
+              const newItem = {
+                id: newQId,
+                data: dataQ,
                 materia: this.modalQuestaoMateria,
-                titulo: this.modalQuestaoAssunto ? `Revisão: ${this.modalQuestaoAssunto}` : `Dúvida em ${this.modalQuestaoMateria}`,
-                descricao: anotacaoText,
-                resolvido: false,
-                dataCriacao: dataQ,
-                dataConclusao: null,
+                tipo: this.modalQuestaoTipo,
+                assunto: assuntoText,
+                total: totalVal,
+                acertos: acertosVal,
+                anotacao: anotacaoText,
                 importId: null
-              });
-            }
+              };
+
+              this.questoes.unshift(newItem);
+
+              if (anotacaoText) {
+                this.gargalos.unshift({
+                  id: 'g_' + uniqueSuffix,
+                  questaoId: newQId,
+                  materia: this.modalQuestaoMateria,
+                  titulo: assuntoText ? `Revisão: ${assuntoText}` : `Dúvida em ${this.modalQuestaoMateria}`,
+                  descricao: anotacaoText,
+                  resolvido: false,
+                  dataCriacao: dataQ,
+                  dataConclusao: null,
+                  importId: null
+                });
+              }
+            });
           }
 
           this.selectedDateFilter = dataQ;
           this.showQuestaoModal = false;
           this.editingQuestaoId = null;
           this.saveAll();
+          this.refreshIcons();
         },
 
         deleteQuestaoRecord(id) {
