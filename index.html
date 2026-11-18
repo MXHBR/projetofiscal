@@ -49,6 +49,31 @@
     ::-webkit-scrollbar-track { background: #0f172a; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #475569; }
+/* Animação suave de entrada ao trocar de aba */
+    @keyframes tabFadeSlide {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .tab-animate {
+      animation: tabFadeSlide 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Animação suave nos botões do menu lateral */
+    .nav-item-btn {
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .nav-item-btn:hover {
+      transform: translateX(4px);
+    }
+    .nav-item-btn:active {
+      transform: scale(0.98);
+    }
     
     /* Suporte para telas touch */
     @media (max-width: 768px) {
@@ -135,7 +160,7 @@
       <main class="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 pb-20 md:pb-8">
         
         <!-- ==================== TAB 1: DASHBOARD ==================== -->
-        <div x-show="activeTab === 'dashboard'" x-cloak class="space-y-6">
+        <div x-show="activeTab === 'dashboard'" x-cloak class="space-y-6 tab-animate">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-100">Visão Geral do Edital</h2>
@@ -352,7 +377,7 @@
         </div>
 
         <!-- ==================== TAB 2: MATÉRIAS ==================== -->
-        <div x-show="activeTab === 'materias'" x-cloak class="space-y-6">
+        <div x-show="activeTab === 'dashboard'" x-cloak class="space-y-6 tab-animate">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-100">Gerenciador de Matérias e Tópicos</h2>
@@ -548,7 +573,7 @@
         </div>
 
         <!-- ==================== TAB 3: QUESTÕES E ESTUDOS UNIFICADOS ==================== -->
-        <div x-show="activeTab === 'questoes' || activeTab === 'estudos'" x-cloak class="space-y-6">
+        <div x-show="activeTab === 'dashboard'" x-cloak class="space-y-6 tab-animate">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-100">Registro de Estudos e Questões</h2>
@@ -776,7 +801,7 @@
         </div>
 
         <!-- ==================== TAB 4: DESEMPENHO E HISTÓRICO (NOVA ABA) ==================== -->
-        <div x-show="activeTab === 'desempenho'" x-cloak class="space-y-6">
+        <div x-show="activeTab === 'dashboard'" x-cloak class="space-y-6 tab-animate">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-100">Controle de Desempenho e Histórico</h2>
@@ -1017,7 +1042,7 @@
         </div>
 
         <!-- ==================== TAB 5: GARGALOS ==================== -->
-        <div x-show="activeTab === 'gargalos'" x-cloak class="space-y-6">
+        <div x-show="activeTab === 'dashboard'" x-cloak class="space-y-6 tab-animate">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-100">Painel de Gargalos e Dúvidas</h2>
@@ -1126,12 +1151,12 @@
       <!-- BARRA DE NAVEGAÇÃO INFERIOR FIXA PARA DISPOSITIVOS MÓVEIS -->
       <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 z-40 flex justify-around items-center h-14 px-2">
         <template x-for="tab in tabs" :key="tab.id">
-          <button @click="setActiveTab(tab.id)"
-                  class="flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition-colors"
-                  :class="activeTab === tab.id ? 'text-indigo-400' : 'text-slate-400 hover:text-slate-200'">
-            <i :data-lucide="tab.icon" class="w-4 h-4 mb-0.5"></i>
-            <span x-text="tab.label.split(' ')[0]"></span>
-          </button>
+          <button @click="setActiveTab(tab.id); mobileMenuOpen = false"
+              :class="activeTab === tab.id ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 shadow-sm translate-x-1' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 border border-transparent'"
+              class="nav-item-btn group w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+              <i :data-lucide="tab.icon" class="w-4 h-4 transition-transform duration-300 group-hover:scale-110" :class="activeTab === tab.id && 'scale-110 text-indigo-400'"></i>
+              <span x-text="tab.label"></span>
+            </button>
         </template>
       </nav>
 
