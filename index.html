@@ -108,7 +108,7 @@
 
       <div class="p-4 border-t border-slate-800/80 text-xs text-slate-500 flex items-center justify-between">
         <span>RFB / SEFAZ</span>
-        <span class="bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono text-[10px]">v6.4</span>
+        <span class="bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono text-[10px]">v6.5</span>
       </div>
     </aside>
 
@@ -471,6 +471,79 @@
                       <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                       <span class="hidden sm:inline">Adicionar</span>
                     </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PAINEL DE HISTÓRICO DE ASSUNTOS ESTUDADOS E DESEMPENHO NA MATÉRIA -->
+              <div class="bg-slate-900/80 border border-slate-800/80 rounded-xl overflow-hidden shadow-sm backdrop-blur-sm">
+                <div class="px-4 py-3 bg-slate-850/80 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <button @click="showMateriaHistoryPanel = !showMateriaHistoryPanel; refreshIcons()" class="flex items-center space-x-2 text-left group">
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="showMateriaHistoryPanel && 'rotate-90'"></i>
+                    <i data-lucide="history" class="w-4 h-4 text-indigo-400"></i>
+                    <span class="text-xs font-bold text-slate-200 uppercase tracking-wider group-hover:text-white transition">Últimos Assuntos Estudados e Desempenho</span>
+                    <span class="bg-slate-900 border border-slate-700 text-indigo-300 px-2 py-0.5 rounded text-[10px] font-mono" x-text="getSelectedMateriaStudiedTopics().length"></span>
+                  </button>
+
+                  <div x-show="showMateriaHistoryPanel" class="flex items-center space-x-2">
+                    <span class="text-[11px] text-slate-400 shrink-0">Ordenar por:</span>
+                    <select x-model="materiaHistorySortBy" @change="refreshIcons()" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-[11px] text-slate-200 focus:outline-none focus:border-indigo-500">
+                      <option value="date_desc">Mais Recentes (Data)</option>
+                      <option value="date_asc">Mais Antigos (Data)</option>
+                      <option value="perf_asc">Menor Acerto (Último Desempenho)</option>
+                      <option value="perf_desc">Maior Acerto (Último Desempenho)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div x-show="showMateriaHistoryPanel" x-collapse class="p-3 sm:p-4">
+                  <template x-if="getSelectedMateriaStudiedTopics().length > 0">
+                    <div class="space-y-2 max-h-80 overflow-y-auto pr-1">
+                      <template x-for="st in getSelectedMateriaStudiedTopics()" :key="st.key">
+                        <div class="bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition">
+                          <div class="space-y-1 min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 flex items-center space-x-1">
+                                <i data-lucide="calendar" class="w-3 h-3 text-indigo-400"></i>
+                                <span x-text="formatDate(st.lastDate)"></span>
+                              </span>
+                              <span class="text-[10px] font-semibold px-2 py-0.5 rounded border"
+                                    :class="st.lastTipo === 'Estudo Teórico' ? 'text-sky-300 bg-sky-600/10 border-sky-500/20' : 'text-indigo-300 bg-indigo-600/10 border-indigo-500/20'"
+                                    x-text="st.lastTipo"></span>
+                              <span x-show="st.sessionsCount > 1" class="text-[10px] font-mono text-slate-400 bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-800" x-text="`${st.sessionsCount} sessões`"></span>
+                            </div>
+                            <p class="text-xs font-bold text-slate-100 break-words" x-text="st.assunto"></p>
+                          </div>
+
+                          <div class="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800/60 shrink-0">
+                            <template x-if="st.lastHasQuestions">
+                              <div class="flex flex-col sm:items-end space-y-1">
+                                <div class="flex items-center space-x-1.5">
+                                  <span class="text-[10px] text-slate-400">Último:</span>
+                                  <span class="text-xs font-extrabold font-mono px-2 py-0.5 rounded" :class="getCustomProgressBarText(st.lastAccuracy)" x-text="`${st.lastAcertos}/${st.lastTotal} (${st.lastAccuracy}%)`"></span>
+                                </div>
+                                <template x-if="st.sessionsCount > 1 && st.cumTotal > st.lastTotal">
+                                  <span class="text-[10px] font-mono text-slate-400" x-text="`Acumulado: ${st.cumAcertos}/${st.cumTotal} (${st.cumAccuracy}%)`"></span>
+                                </template>
+                              </div>
+                            </template>
+
+                            <template x-if="!st.lastHasQuestions">
+                              <div class="flex flex-col sm:items-end space-y-1">
+                                <span class="text-[11px] font-mono text-sky-400/90 bg-sky-950/40 border border-sky-500/20 px-2 py-0.5 rounded">Apenas Teoria</span>
+                                <template x-if="st.cumTotal > 0">
+                                  <span class="text-[10px] font-mono text-slate-400" x-text="`Histórico: ${st.cumAcertos}/${st.cumTotal} (${st.cumAccuracy}%)`"></span>
+                                </template>
+                              </div>
+                            </template>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
+
+                  <div x-show="getSelectedMateriaStudiedTopics().length === 0" class="py-6 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
+                    Nenhum registro de estudo ou questões encontrado para <span class="text-slate-300 font-semibold" x-text="getSelectedMateria().nome"></span> ainda.
                   </div>
                 </div>
               </div>
@@ -1401,6 +1474,9 @@
         materiaSearchQuery: '',
         draggedMateriaId: null,
         newTopicText: '',
+
+        showMateriaHistoryPanel: true,
+        materiaHistorySortBy: 'date_desc',
         
         questoes: [],
         estudos: [], 
@@ -1510,27 +1586,122 @@
           return s;
         },
 
+        isSameMateria(matNome, qMateria) {
+          if (!matNome || !qMateria) return false;
+          const targetNorm = this.normalizeMateriaName(matNome);
+          const qNorm = this.normalizeMateriaName(qMateria);
+          return qNorm === targetNorm || qNorm.includes(targetNorm) || targetNorm.includes(qNorm);
+        },
+
+        getSelectedMateriaStudiedTopics() {
+          const mat = this.getSelectedMateria();
+          if (!mat || !mat.nome) return [];
+
+          const matchingRecords = this.questoes.filter(q => this.isSameMateria(mat.nome, q.materia));
+          if (matchingRecords.length === 0) return [];
+
+          // Agrupa registros por assunto normalizado para mostrar o último estudo, último desempenho e acumulado
+          const topicMap = {};
+
+          matchingRecords.forEach((rec, index) => {
+            const rawAssunto = (rec.assunto && rec.assunto.trim()) ? rec.assunto.trim() : 'Geral / Sem assunto especificado';
+            const normKey = rawAssunto
+              .toUpperCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .replace(/\s+/g, ' ')
+              .trim();
+
+            const recDate = rec.data || '1970-01-01';
+            const recTotal = Number(rec.total) || 0;
+            const recAcertos = Number(rec.acertos) || 0;
+
+            if (!topicMap[normKey]) {
+              topicMap[normKey] = {
+                key: normKey,
+                assunto: rawAssunto,
+                lastDate: recDate,
+                lastIndex: index, // Como questoes usa unshift, menor índice = registro mais recente na mesma data
+                lastTipo: rec.tipo || (recTotal > 0 ? 'Resolução de Questões' : 'Estudo Teórico'),
+                lastTotal: recTotal,
+                lastAcertos: recAcertos,
+                cumTotal: recTotal,
+                cumAcertos: recAcertos,
+                sessionsCount: 1
+              };
+            } else {
+              const entry = topicMap[normKey];
+              entry.cumTotal += recTotal;
+              entry.cumAcertos += recAcertos;
+              entry.sessionsCount += 1;
+
+              // Verifica se este registro é mais recente que o armazenado
+              if (recDate > entry.lastDate || (recDate === entry.lastDate && index < entry.lastIndex)) {
+                entry.assunto = rawAssunto;
+                entry.lastDate = recDate;
+                entry.lastIndex = index;
+                entry.lastTipo = rec.tipo || (recTotal > 0 ? 'Resolução de Questões' : 'Estudo Teórico');
+                entry.lastTotal = recTotal;
+                entry.lastAcertos = recAcertos;
+              }
+            }
+          });
+
+          const list = Object.values(topicMap).map(item => {
+            const lastHasQuestions = item.lastTotal > 0;
+            const lastAccuracy = lastHasQuestions ? Math.round((item.lastAcertos / item.lastTotal) * 100) : null;
+            const cumAccuracy = item.cumTotal > 0 ? Math.round((item.cumAcertos / item.cumTotal) * 100) : null;
+            return {
+              ...item,
+              lastHasQuestions,
+              lastAccuracy,
+              cumAccuracy
+            };
+          });
+
+          // Ordenação conforme critério escolhido pelo usuário
+          if (this.materiaHistorySortBy === 'date_desc') {
+            list.sort((a, b) => {
+              if (b.lastDate !== a.lastDate) return b.lastDate.localeCompare(a.lastDate);
+              return a.lastIndex - b.lastIndex;
+            });
+          } else if (this.materiaHistorySortBy === 'date_asc') {
+            list.sort((a, b) => {
+              if (a.lastDate !== b.lastDate) return a.lastDate.localeCompare(b.lastDate);
+              return b.lastIndex - a.lastIndex;
+            });
+          } else if (this.materiaHistorySortBy === 'perf_asc') {
+            list.sort((a, b) => {
+              if (a.lastAccuracy === null && b.lastAccuracy === null) return b.lastDate.localeCompare(a.lastDate);
+              if (a.lastAccuracy === null) return 1;
+              if (b.lastAccuracy === null) return -1;
+              if (a.lastAccuracy !== b.lastAccuracy) return a.lastAccuracy - b.lastAccuracy;
+              return b.lastDate.localeCompare(a.lastDate);
+            });
+          } else if (this.materiaHistorySortBy === 'perf_desc') {
+            list.sort((a, b) => {
+              if (a.lastAccuracy === null && b.lastAccuracy === null) return b.lastDate.localeCompare(a.lastDate);
+              if (a.lastAccuracy === null) return 1;
+              if (b.lastAccuracy === null) return -1;
+              if (b.lastAccuracy !== a.lastAccuracy) return b.lastAccuracy - a.lastAccuracy;
+              return b.lastDate.localeCompare(a.lastDate);
+            });
+          }
+
+          return list;
+        },
+
         calcMatQuestions(mat) {
           if (!mat || !mat.nome) return 0;
-          const targetNorm = this.normalizeMateriaName(mat.nome);
           return this.questoes
-            .filter(q => {
-              if (!q.materia) return false;
-              const qNorm = this.normalizeMateriaName(q.materia);
-              return qNorm === targetNorm || qNorm.includes(targetNorm) || targetNorm.includes(qNorm);
-            })
+            .filter(q => this.isSameMateria(mat.nome, q.materia))
             .reduce((acc, q) => acc + (Number(q.total) || 0), 0);
         },
 
         calcMatRights(mat) {
           if (!mat || !mat.nome) return 0;
-          const targetNorm = this.normalizeMateriaName(mat.nome);
           return this.questoes
-            .filter(q => {
-              if (!q.materia) return false;
-              const qNorm = this.normalizeMateriaName(q.materia);
-              return qNorm === targetNorm || qNorm.includes(targetNorm) || targetNorm.includes(qNorm);
-            })
+            .filter(q => this.isSameMateria(mat.nome, q.materia))
             .reduce((acc, q) => acc + (Number(q.acertos) || 0), 0);
         },
 
@@ -2192,7 +2363,6 @@
               }
             }
           } else {
-            // Salva múltiplos assuntos da mesma sessão em ordem reversa para manter a ordem cronológica inserida no unshift
             const itemsToSave = [...this.modalQuestaoItens].reverse();
             itemsToSave.forEach((formItem, idx) => {
               const assuntoText = formItem.assunto ? formItem.assunto.trim() : '';
@@ -2200,7 +2370,6 @@
               const totalVal = isTeoria ? 0 : (Number(formItem.total) || 0);
               const acertosVal = isTeoria ? 0 : (Number(formItem.acertos) || 0);
 
-              // Ignora blocos completamente vazios caso haja mais de 1 bloco
               if (itemsToSave.length > 1 && !assuntoText && totalVal === 0 && acertosVal === 0 && !anotacaoText) {
                 return;
               }
