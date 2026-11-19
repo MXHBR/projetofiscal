@@ -1181,6 +1181,253 @@
           </div>
         </div>
 
+        <!-- ==================== TAB 4.5: QUESTÕES CERTO / ERRADO ==================== -->
+        <div x-show="activeTab === 'banco_ce'" x-cloak class="space-y-6">
+          
+          <!-- Cabeçalho + Alternância de Modo -->
+          <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-sm backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
+                <i data-lucide="check-circle-2" class="w-5 h-5 text-sky-400"></i>
+                <span>Treino & Memorização (Certo ou Errado)</span>
+              </h2>
+              <p class="text-slate-400 text-xs sm:text-sm mt-0.5">Crie assertivas diretas de lei seca, jurisprudência ou fórmulas e revise ativamente.</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <button @click="ceMode = 'revisao'; iniciarRevisaoCE()" 
+                      :class="ceMode === 'revisao' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-850 text-slate-300 border border-slate-700 hover:bg-slate-800'"
+                      class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
+                <i data-lucide="play-circle" class="w-4 h-4"></i>
+                <span>Modo Revisão (<span x-text="getFilteredCE().length"></span>)</span>
+              </button>
+              <button @click="ceMode = 'gerenciar'; refreshIcons()" 
+                      :class="ceMode === 'gerenciar' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-850 text-slate-300 border border-slate-700 hover:bg-slate-800'"
+                      class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Criar / Gerenciar (<span x-text="flashcardsCE.length"></span>)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtros por Matéria e Desempenho -->
+          <div class="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 shadow-sm backdrop-blur-sm grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Filtrar por Matéria:</label>
+              <select x-model="ceFilterMateria" @change="iniciarRevisaoCE()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="todas">Todas as Matérias</option>
+                <template x-for="m in materias" :key="'cef_' + m.id">
+                  <option :value="m.id" x-text="m.nome"></option>
+                </template>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Filtro de Desempenho:</label>
+              <select x-model="ceFilterStatus" @change="iniciarRevisaoCE()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="todas">Todas as Assertivas</option>
+                <option value="erradas">Apenas com Erros / Nunca Revisadas</option>
+                <option value="dominadas">Dominadas (Mais acertos que erros)</option>
+              </select>
+            </div>
+
+            <div class="flex items-end">
+              <button @click="embaralharCE()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2 px-3 rounded-lg border border-slate-700 flex items-center justify-center space-x-1.5 transition cursor-pointer">
+                <i data-lucide="shuffle" class="w-3.5 h-3.5 text-sky-400"></i>
+                <span>Embaralhar Ordem</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ==================== MODO 1: REVISÃO ATIVA (CERTO / ERRADO) ==================== -->
+          <div x-show="ceMode === 'revisao'" class="space-y-4">
+            <template x-if="ceFilaRevisao.length === 0">
+              <div class="bg-slate-900/80 rounded-2xl p-10 border border-dashed border-slate-800 text-center space-y-3">
+                <p class="text-slate-300 text-sm font-semibold">Nenhuma assertiva encontrada para este filtro.</p>
+                <button @click="ceMode = 'gerenciar'; refreshIcons()" class="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl inline-flex items-center space-x-1.5 cursor-pointer">
+                  <i data-lucide="plus" class="w-4 h-4"></i>
+                  <span>Cadastrar Primeira Assertiva</span>
+                </button>
+              </div>
+            </template>
+
+            <template x-if="ceFilaRevisao.length > 0 && ceCardAtual">
+              <div class="bg-slate-900/90 rounded-2xl p-5 sm:p-8 border border-slate-800 shadow-xl space-y-6 max-w-4xl mx-auto">
+                
+                <!-- Topo do Card: Progresso + Matéria + Histórico -->
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-4">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="px-2.5 py-1 rounded-lg bg-slate-850 text-sky-300 border border-slate-700 text-xs font-bold flex items-center space-x-1.5">
+                      <span class="w-2 h-2 rounded-full" :style="`background-color: ${getMateriaColor(ceCardAtual.materia_nome)}`"></span>
+                      <span x-text="ceCardAtual.materia_nome || 'Geral'"></span>
+                    </span>
+                    <span x-show="ceCardAtual.assunto" class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 text-xs" x-text="ceCardAtual.assunto"></span>
+                  </div>
+                  <div class="flex items-center gap-3 text-xs font-bold font-mono">
+                    <span class="text-emerald-400">✓ <span x-text="ceCardAtual.acertos || 0"></span></span>
+                    <span class="text-rose-400">✕ <span x-text="ceCardAtual.erros || 0"></span></span>
+                    <span class="text-slate-400 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">Item <span x-text="ceIndexAtual + 1"></span> / <span x-text="ceFilaRevisao.length"></span></span>
+                  </div>
+                </div>
+
+                <!-- Enunciado da Assertiva -->
+                <div class="py-4 px-2">
+                  <p class="text-base sm:text-lg font-medium text-white leading-relaxed whitespace-pre-line" x-text="ceCardAtual.enunciado"></p>
+                </div>
+
+                <!-- Botões de Resposta (Antes de responder) -->
+                <div x-show="!ceRespondido" class="grid grid-cols-2 gap-4 pt-2">
+                  <button @click="responderCE('C')" 
+                          class="py-4 rounded-xl bg-emerald-600/20 hover:bg-emerald-600 border-2 border-emerald-500 text-emerald-300 hover:text-white font-black text-base tracking-wide transition-all cursor-pointer">
+                    ✓ CERTO
+                  </button>
+                  <button @click="responderCE('E')" 
+                          class="py-4 rounded-xl bg-rose-600/20 hover:bg-rose-600 border-2 border-rose-500 text-rose-300 hover:text-white font-black text-base tracking-wide transition-all cursor-pointer">
+                    ✕ ERRADO
+                  </button>
+                </div>
+
+                <!-- Gabarito Comentado + Navegação (Após responder) -->
+                <div x-show="ceRespondido" class="space-y-4 pt-2">
+                  <div :class="ceAcertouUltimo ? 'bg-emerald-950/60 border-emerald-500 text-emerald-200' : 'bg-rose-950/60 border-rose-500 text-rose-200'"
+                       class="p-4 rounded-xl border-l-4 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="font-black text-sm uppercase" x-text="ceAcertouUltimo ? 'Você Acertou!' : 'Você Errou!'"></span>
+                      <span class="text-xs font-extrabold px-2.5 py-0.5 rounded bg-slate-950 text-white border border-slate-700">
+                        Gabarito: <span x-text="ceCardAtual.gabarito === 'C' ? 'CERTO' : 'ERRADO'"></span>
+                      </span>
+                    </div>
+                    <p class="text-xs sm:text-sm leading-relaxed text-slate-100 whitespace-pre-line" 
+                       x-text="ceCardAtual.justificativa || 'Sem comentário cadastrado para esta assertiva.'"></p>
+                  </div>
+
+                  <div class="flex items-center justify-between pt-2">
+                    <button @click="anteriorCE()" :disabled="ceIndexAtual === 0"
+                            class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold border border-slate-700 disabled:opacity-40 cursor-pointer">
+                      ← Anterior
+                    </button>
+                    <button @click="proximoCE()" 
+                            class="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-extrabold cursor-pointer">
+                      <span x-text="ceIndexAtual + 1 < ceFilaRevisao.length ? 'Próxima Questão →' : 'Reiniciar Fila ↻'"></span>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </template>
+          </div>
+
+          <!-- ==================== MODO 2: CRIAÇÃO E BANCO DE ASSERTIVAS ==================== -->
+          <div x-show="ceMode === 'gerenciar'" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Formulário de Cadastro / Edição -->
+            <div class="lg:col-span-5 bg-slate-900/80 rounded-2xl p-5 border border-slate-800 space-y-4 h-fit">
+              <h3 class="text-xs font-extrabold text-white uppercase tracking-wider flex items-center space-x-2">
+                <i data-lucide="edit-3" class="w-4 h-4 text-sky-400"></i>
+                <span x-text="ceForm.id ? 'Editar Assertiva' : 'Nova Assertiva Certo/Errado'"></span>
+              </h3>
+              
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Matéria *</label>
+                <select x-model="ceForm.materia_id" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                  <option value="">Selecione a matéria...</option>
+                  <template x-for="m in materias" :key="'ceform_' + m.id">
+                    <option :value="m.id" x-text="m.nome"></option>
+                  </template>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Assunto / Tópico (opcional)</label>
+                <input type="text" x-model="ceForm.assunto"
+                       list="datalist_ce_assuntos"
+                       autocomplete="off"
+                       placeholder="Ex: Decadência Tributária, Art. 173 CTN..."
+                       class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                <datalist id="datalist_ce_assuntos">
+                  <template x-for="sug in getCeAssuntoSuggestions()" :key="sug">
+                    <option :value="sug"></option>
+                  </template>
+                </datalist>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Afirmação (Enunciado) *</label>
+                <textarea x-model="ceForm.enunciado" rows="4" placeholder="Escreva a frase afirmativa para julgar como Certa ou Errada..."
+                          class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"></textarea>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Gabarito Oficial *</label>
+                <div class="grid grid-cols-2 gap-3">
+                  <button type="button" @click="ceForm.gabarito = 'C'"
+                          :class="ceForm.gabarito === 'C' ? 'bg-emerald-600 text-white border-emerald-400' : 'bg-slate-950 text-slate-400 border-slate-800'"
+                          class="py-2.5 rounded-xl font-extrabold text-xs border cursor-pointer">
+                    ✓ CERTO
+                  </button>
+                  <button type="button" @click="ceForm.gabarito = 'E'"
+                          :class="ceForm.gabarito === 'E' ? 'bg-rose-600 text-white border-rose-400' : 'bg-slate-950 text-slate-400 border-slate-800'"
+                          class="py-2.5 rounded-xl font-extrabold text-xs border cursor-pointer">
+                    ✕ ERRADO
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Justificativa / Fundamentação Legal</label>
+                <textarea x-model="ceForm.justificativa" rows="3" placeholder="Explique o porquê (ex: Errado, pois o prazo é de 5 anos contados do primeiro dia do exercício seguinte...)"
+                          class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"></textarea>
+              </div>
+
+              <div class="flex gap-2 pt-1">
+                <button @click="salvarQuestaoCE()" class="flex-1 bg-indigo-600 text-white font-extrabold text-xs py-2.5 px-4 rounded-xl cursor-pointer">
+                  Salvar Assertiva
+                </button>
+                <button x-show="ceForm.id" @click="resetFormCE()" class="bg-slate-800 text-slate-300 font-bold text-xs py-2.5 px-3 rounded-xl border border-slate-700 cursor-pointer">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista das Assertivas Cadastradas -->
+            <div class="lg:col-span-7 space-y-3">
+              <div class="bg-slate-900/80 rounded-2xl p-4 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span class="text-xs font-extrabold text-white uppercase">Assertivas Salvas (<span x-text="getFilteredCE().length"></span>)</span>
+                <input type="text" x-model="ceSearchText" placeholder="Buscar no enunciado ou assunto..."
+                       class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white w-full sm:w-64 focus:outline-none focus:border-indigo-500">
+              </div>
+
+              <div class="space-y-2.5 max-h-[650px] overflow-y-auto pr-1">
+                <template x-for="item in getFilteredCE()" :key="item.id">
+                  <div class="bg-slate-900/90 rounded-xl p-4 border border-slate-800 space-y-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span :class="item.gabarito === 'C' ? 'bg-emerald-600/30 text-emerald-300 border-emerald-500/40' : 'bg-rose-600/30 text-rose-300 border-rose-500/40'"
+                              class="px-2 py-0.5 rounded text-[10px] font-black border"
+                              x-text="item.gabarito === 'C' ? 'CERTO' : 'ERRADO'"></span>
+                        <span class="text-xs font-bold text-sky-300" x-text="item.materia_nome"></span>
+                        <span x-show="item.assunto" class="text-[11px] text-slate-400">• <span x-text="item.assunto"></span></span>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <span class="text-[11px] font-mono text-slate-400">✓<span x-text="item.acertos || 0"></span> ✕<span x-text="item.erros || 0"></span></span>
+                        <button @click="editarQuestaoCE(item)" class="text-xs text-sky-300 hover:underline font-bold cursor-pointer">Editar</button>
+                        <button @click="excluirQuestaoCE(item.id)" class="text-xs text-rose-400 hover:underline font-bold cursor-pointer">Excluir</button>
+                      </div>
+                    </div>
+                    <p class="text-xs text-slate-100 leading-relaxed whitespace-pre-line" x-text="item.enunciado"></p>
+                    <p x-show="item.justificativa" class="text-[11px] text-slate-300 italic border-t border-slate-800 pt-1.5 whitespace-pre-line" x-text="item.justificativa"></p>
+                  </div>
+                </template>
+
+                <div x-show="getFilteredCE().length === 0" class="py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
+                  Nenhuma assertiva cadastrada ainda. Use o formulário ao lado para criar!
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
         <!-- ==================== TAB 5: GARGALOS ==================== -->
         <div x-show="activeTab === 'gargalos'" x-cloak class="space-y-6">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1812,6 +2059,7 @@
           { id: 'materias', label: 'Matérias', icon: 'book-open' },
           { id: 'questoes', label: 'Questões & Estudos', icon: 'target' },
           { id: 'desempenho', label: 'Desempenho', icon: 'history' },
+          { id: 'banco_ce', label: 'Questões C/E', icon: 'check-circle-2' },
           { id: 'gargalos', label: 'Gargalos', icon: 'alert-triangle' }
         ],
 
@@ -1840,6 +2088,18 @@
         questoes: [],
         estudos: [], 
         gargalos: [],
+        flashcardsCE: [],
+
+        ceMode: 'revisao',
+        ceFilterMateria: 'todas',
+        ceFilterStatus: 'todas',
+        ceSearchText: '',
+        ceFilaRevisao: [],
+        ceIndexAtual: 0,
+        ceRespondido: false,
+        ceAcertouUltimo: false,
+        ceForm: { id: null, materia_id: '', assunto: '', enunciado: '', gabarito: 'C', justificativa: '' },
+        get ceCardAtual() { return this.ceFilaRevisao[this.ceIndexAtual] || null; },
 
         timelinePeriod: '7',
         timelineDateStart: new Date().toISOString().split('T')[0],
@@ -1912,7 +2172,9 @@
           this.$watch('gargalos', () => { if (this.isLoaded) this.saveAll(); }, { deep: true });
           this.$watch('pinnedNotes', () => { if (this.isLoaded) this.saveAll(); }, { deep: true });
           this.$watch('exams', () => { if (this.isLoaded) this.saveAll(); }, { deep: true });
+          this.$watch('flashcardsCE', () => { if (this.isLoaded) this.saveAll(); }, { deep: true });
 
+          this.iniciarRevisaoCE();
           this.refreshIcons();
         },
 
@@ -2432,6 +2694,10 @@
           this.estudos = mergedList;
 
           if (loaded.gargalos) this.gargalos = loaded.gargalos;
+          if (loaded.flashcardsCE) {
+            this.flashcardsCE = loaded.flashcardsCE;
+            this.iniciarRevisaoCE();
+          }
           if (loaded.exams) this.exams = loaded.exams;
           if (loaded.pinnedNotes) {
             this.pinnedNotes = loaded.pinnedNotes.map(n => {
@@ -2473,6 +2739,7 @@
             questoes: this.questoes,
             estudos: this.questoes,
             gargalos: this.gargalos,
+            flashcardsCE: this.flashcardsCE,
             pinnedNotes: this.pinnedNotes,
             exams: this.exams
           };
@@ -3571,6 +3838,128 @@
             }
           };
           reader.readAsArrayBuffer(file);
+        },
+
+        getCeAssuntoSuggestions() {
+          if (!this.ceForm.materia_id) return [];
+          const mat = this.materias.find(m => m.id === this.ceForm.materia_id);
+          if (!mat) return [];
+          const set = new Set();
+          (mat.topicos || []).forEach(t => { if (t.nome) set.add(t.nome); });
+          this.questoes.filter(q => this.isSameMateria(mat.nome, q.materia)).forEach(q => {
+            if (q.assunto && q.assunto.trim()) set.add(q.assunto.trim());
+          });
+          return Array.from(set);
+        },
+
+        getFilteredCE() {
+          return this.flashcardsCE.filter(item => {
+            if (this.ceFilterMateria !== 'todas' && item.materia_id !== this.ceFilterMateria) return false;
+            if (this.ceFilterStatus === 'erradas' && (item.acertos || 0) > (item.erros || 0)) return false;
+            if (this.ceFilterStatus === 'dominadas' && (item.acertos || 0) <= (item.erros || 0)) return false;
+            if (this.ceSearchText.trim()) {
+              const q = this.ceSearchText.toLowerCase();
+              const matchEnun = (item.enunciado || '').toLowerCase().includes(q);
+              const matchAssunto = (item.assunto || '').toLowerCase().includes(q);
+              if (!matchEnun && !matchAssunto) return false;
+            }
+            return true;
+          });
+        },
+
+        iniciarRevisaoCE() {
+          this.ceFilaRevisao = [...this.getFilteredCE()];
+          this.ceIndexAtual = 0;
+          this.ceRespondido = false;
+          this.refreshIcons();
+        },
+
+        embaralharCE() {
+          const arr = [...this.getFilteredCE()];
+          for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+          }
+          this.ceFilaRevisao = arr;
+          this.ceIndexAtual = 0;
+          this.ceRespondido = false;
+          this.refreshIcons();
+        },
+
+        responderCE(escolha) {
+          if (!this.ceCardAtual || this.ceRespondido) return;
+          this.ceRespondido = true;
+          this.ceAcertouUltimo = (escolha === this.ceCardAtual.gabarito);
+
+          if (this.ceAcertouUltimo) {
+            this.ceCardAtual.acertos = (this.ceCardAtual.acertos || 0) + 1;
+          } else {
+            this.ceCardAtual.erros = (this.ceCardAtual.erros || 0) + 1;
+          }
+          this.ceCardAtual.ultima_revisao = new Date().toISOString().split('T')[0];
+          this.saveAll();
+        },
+
+        proximoCE() {
+          this.ceRespondido = false;
+          if (this.ceIndexAtual + 1 < this.ceFilaRevisao.length) {
+            this.ceIndexAtual++;
+          } else {
+            this.ceIndexAtual = 0;
+          }
+        },
+
+        anteriorCE() {
+          if (this.ceIndexAtual > 0) {
+            this.ceRespondido = false;
+            this.ceIndexAtual--;
+          }
+        },
+
+        salvarQuestaoCE() {
+          if (!this.ceForm.enunciado.trim()) {
+            alert('Digite o enunciado da assertiva.');
+            return;
+          }
+          const mat = this.materias.find(m => m.id === this.ceForm.materia_id);
+          const payload = {
+            id: this.ceForm.id || ('ce_' + Date.now()),
+            materia_id: this.ceForm.materia_id || '',
+            materia_nome: mat ? mat.nome : 'Geral',
+            assunto: this.ceForm.assunto ? this.ceForm.assunto.trim() : '',
+            enunciado: this.ceForm.enunciado.trim(),
+            gabarito: this.ceForm.gabarito,
+            justificativa: this.ceForm.justificativa ? this.ceForm.justificativa.trim() : ''
+          };
+
+          if (this.ceForm.id) {
+            const idx = this.flashcardsCE.findIndex(x => x.id === this.ceForm.id);
+            if (idx > -1) {
+              this.flashcardsCE[idx] = { ...this.flashcardsCE[idx], ...payload };
+            }
+          } else {
+            this.flashcardsCE.unshift({ ...payload, acertos: 0, erros: 0 });
+          }
+
+          this.saveAll();
+          this.resetFormCE();
+          this.iniciarRevisaoCE();
+        },
+
+        editarQuestaoCE(item) {
+          this.ceForm = { ...item };
+          this.refreshIcons();
+        },
+
+        resetFormCE() {
+          this.ceForm = { id: null, materia_id: '', assunto: '', enunciado: '', gabarito: 'C', justificativa: '' };
+        },
+
+        excluirQuestaoCE(id) {
+          if (!confirm('Excluir esta assertiva?')) return;
+          this.flashcardsCE = this.flashcardsCE.filter(x => x.id !== id);
+          this.saveAll();
+          this.iniciarRevisaoCE();
         },
 
         undoLastImport() {
