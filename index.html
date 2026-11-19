@@ -44,67 +44,55 @@
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
   <style>
-    /* ==================== 1. FUNDO CLARO VIBRANTE ==================== */
+    /* ==================== 1. FUNDO COBALT & CIANO VIBRANTE ==================== */
     body {
-      background: linear-gradient(145deg, #bfdbfe 0%, #dbeafe 45%, #e0e7ff 100%) !important;
-      color: #0f172a !important;
+      background: linear-gradient(145deg, #1d4ed8 0%, #1e3a8a 45%, #172554 100%) !important;
+      color: #ffffff !important;
     }
 
-    /* ==================== 2. CARDS BRANCO PURO COM BORDA AZUL ==================== */
+    /* ==================== 2. CARDS SÓLIDOS DE ALTO CONTRASTE (SEM NÉVOA CINZA) ==================== */
     .bg-slate-900, .bg-slate-900\/80, .bg-slate-900\/90, .bg-slate-900\/95 {
-      background: #ffffff !important;
-      border: 1px solid #93c5fd !important;
-      box-shadow: 0 8px 24px -4px rgba(30, 58, 138, 0.14) !important;
+      background: #10234d !important;
+      border: 1px solid #3b82f6 !important;
+      box-shadow: 0 10px 28px -6px rgba(7, 16, 43, 0.65) !important;
     }
 
     .bg-slate-850, .bg-slate-850\/80 {
-      background: #eff6ff !important;
-      border: 1px solid #bfdbfe !important;
+      background: #162e63 !important;
+      border: 1px solid rgba(96, 165, 250, 0.45) !important;
     }
 
     .bg-slate-950, .bg-slate-950\/80, .bg-slate-950\/90, .bg-slate-950\/60 {
-      background: #f8fafc !important;
-      border-color: #93c5fd !important;
+      background: #0b1938 !important;
+      border-color: #2563eb !important;
     }
 
     .bg-slate-800, .bg-slate-800\/80 {
-      background: #dbeafe !important;
+      background: #1e3f85 !important;
     }
 
-    /* ==================== 3. TEXTOS ESCUROS E CONTRASTE MÁXIMO ==================== */
-    .text-slate-100, .text-slate-200, .text-white {
-      color: #0f172a !important;
+    /* ==================== 3. TEXTOS BRANCOS E VIVOS ==================== */
+    .text-slate-100, .text-slate-200 {
+      color: #ffffff !important;
     }
     .text-slate-300 {
-      color: #1e293b !important;
+      color: #e0f2fe !important;
     }
     .text-slate-400, .text-slate-500 {
-      color: #475569 !important;
+      color: #93c5fd !important;
     }
 
     main .text-2xl.font-extrabold, main .text-2xl.font-black {
-      color: #1d4ed8 !important;
-      -webkit-text-fill-color: #1d4ed8 !important;
+      color: #38bdf8 !important;
+      -webkit-text-fill-color: #38bdf8 !important;
+      text-shadow: 0 0 18px rgba(56, 189, 248, 0.45);
     }
 
     .bg-indigo-600 {
-      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%) !important;
+      border: 1px solid #7dd3fc !important;
       color: #ffffff !important;
-      box-shadow: 0 6px 18px -3px rgba(37, 99, 235, 0.5) !important;
-    }
-    .bg-indigo-600 span, .bg-emerald-600, .bg-emerald-600 span, .bg-amber-600, .bg-amber-600 span {
-      color: #ffffff !important;
-    }
-
-    .text-indigo-300, .text-indigo-400 { color: #1d4ed8 !important; font-weight: 700 !important; }
-    .text-emerald-400 { color: #047857 !important; font-weight: 700 !important; }
-    .text-amber-400 { color: #b45309 !important; font-weight: 700 !important; }
-    .text-rose-400 { color: #be123c !important; font-weight: 700 !important; }
-
-    input, select, textarea {
-      background-color: #ffffff !important;
-      color: #0f172a !important;
-      border: 1px solid #93c5fd !important;
+      box-shadow: 0 6px 20px -3px rgba(14, 165, 233, 0.6) !important;
     }
   </style></head>
 <body class="bg-gradient-to-b from-[rgb(25,37,104)] via-slate-900 to-slate-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-indigo-500 selection:text-white" x-data="appData()" x-init="initApp()">
