@@ -46,79 +46,118 @@
   <style>
     [x-cloak] { display: none !important; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #475569; }
-    
-    /* Suporte para telas touch */
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(129, 140, 248, 0.45); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(129, 140, 248, 0.75); }
+
     @media (max-width: 768px) {
-      body {
-        padding-bottom: 60px; /* Espaço para a barra inferior no celular */
-      }
+      body { padding-bottom: 60px; }
     }
-/* ==================== PALETA 3: VIOLETA CREPÚSCULO ==================== */
+
+    /* ==================== 1. FUNDO AURORA VIVO E ANIMADO ==================== */
+    @keyframes auroraFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     body {
-      background: linear-gradient(155deg, #312e81 0%, #23214a 48%, #191836 100%) !important;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(56, 189, 248, 0.32) 0%, transparent 42%),
+        radial-gradient(circle at 88% 15%, rgba(168, 85, 247, 0.34) 0%, transparent 45%),
+        radial-gradient(circle at 75% 85%, rgba(99, 102, 241, 0.35) 0%, transparent 48%),
+        radial-gradient(circle at 20% 85%, rgba(16, 185, 129, 0.22) 0%, transparent 42%),
+        linear-gradient(135deg, #16224a 0%, #1e1b4b 45%, #172554 100%) !important;
+      background-size: 160% 160% !important;
+      animation: auroraFlow 18s ease infinite !important;
     }
-    .bg-slate-950, .bg-slate-950\/80, .bg-slate-950\/90 {
-      background-color: rgba(25, 24, 54, 0.86) !important;
-    }
+
+    /* ==================== 2. CARDS DE VIDRO 3D (GLASSMORPHISM) ==================== */
     .bg-slate-900, .bg-slate-900\/80, .bg-slate-900\/90, .bg-slate-900\/95 {
-      background-color: rgba(36, 34, 74, 0.82) !important;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+      backdrop-filter: blur(20px) saturate(140%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.16) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.30) !important;
+      box-shadow: 0 12px 35px -8px rgba(7, 12, 34, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
     }
+
     .bg-slate-850, .bg-slate-850\/80 {
-      background-color: rgba(47, 45, 94, 0.78) !important;
+      background: rgba(255, 255, 255, 0.06) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
     }
-    .border-slate-800, .border-slate-800\/80 {
-      border-color: rgba(129, 140, 248, 0.32) !important;
+
+    .bg-slate-950, .bg-slate-950\/80, .bg-slate-950\/90, .bg-slate-950\/60 {
+      background: rgba(13, 20, 48, 0.58) !important;
+      border-color: rgba(165, 180, 252, 0.22) !important;
     }
-/* ==================== ANIMAÇÕES DOS MENUS E ABAS ==================== */
-    @keyframes tabFadeSlide {
+
+    /* ==================== 3. DESTAQUES LUMINOSOS & BOTÕES ==================== */
+    /* Números grandes do dashboard com gradiente metálico brilhante */
+    main .text-2xl.font-extrabold, main .text-2xl.font-black {
+      background: linear-gradient(90deg, #ffffff 0%, #bae6fd 55%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 10px rgba(125, 211, 252, 0.25));
+    }
+
+    /* Botão principal com brilho neon */
+    .bg-indigo-600 {
+      background: linear-gradient(135deg, #6366f1 0%, #3b82f6 50%, #06b6d4 100%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.28) !important;
+      box-shadow: 0 6px 20px -4px rgba(59, 130, 246, 0.65) !important;
+      transition: all 0.25s ease !important;
+    }
+    .bg-indigo-600:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 26px -3px rgba(6, 182, 212, 0.75) !important;
+    }
+
+    /* ==================== 4. ANIMAÇÕES DE MENU, CARDS E ABAS ==================== */
+    @keyframes tabCinemaIn {
       from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(14px) scale(0.985);
+        filter: blur(4px);
       }
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
+        filter: blur(0);
       }
     }
 
-    /* Anima a entrada de qualquer aba ativa automaticamente */
     main > div:not([style*="display: none"]) {
-      animation: tabFadeSlide 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+      animation: tabCinemaIn 0.36s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Animação fluida nos botões do menu lateral */
+    /* Menu lateral com deslize e brilho */
     aside nav button {
-      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-                  background-color 0.22s ease,
-                  color 0.22s ease,
-                  border-color 0.22s ease,
-                  box-shadow 0.22s ease !important;
+      position: relative;
+      transition: all 0.26s cubic-bezier(0.22, 1, 0.36, 1) !important;
     }
     aside nav button:hover {
-      transform: translateX(5px);
-    }
-    aside nav button:active {
-      transform: scale(0.98);
+      transform: translateX(6px);
+      background: rgba(255, 255, 255, 0.11) !important;
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.18);
     }
     aside nav button svg {
-      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     }
     aside nav button:hover svg {
-      transform: scale(1.15);
+      transform: scale(1.2) rotate(-4deg);
+      color: #38bdf8 !important;
     }
 
-    /* Animação na barra de navegação inferior mobile */
-    nav.fixed.bottom-0 button {
-      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease !important;
+    /* Elevação suave nos cards de matérias ao passar o mouse */
+    main .grid > div {
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.25s ease, box-shadow 0.25s ease;
     }
-    nav.fixed.bottom-0 button:active {
-      transform: scale(0.88);
+    main .grid > div:hover {
+      transform: translateY(-3px);
+      border-color: rgba(125, 211, 252, 0.45) !important;
     }
-  </style>
-</head>
+  </style></head>
 <body class="bg-gradient-to-b from-[rgb(25,37,104)] via-slate-900 to-slate-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-indigo-500 selection:text-white" x-data="appData()" x-init="initApp()">
 
   <div class="flex h-screen overflow-hidden relative">
