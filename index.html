@@ -108,7 +108,7 @@
       box-shadow: 0 6px 20px -3px rgba(14, 165, 233, 0.6) !important;
     }
 
-    /* ==================== 4. ANIMAÇÕES AGRESSIVAS NO HOVER (CSS PURO) ==================== */
+    /* ==================== 4. ANIMAÇÕES AGRESSIVAS & NEON ESTÁVEL ==================== */
 
     /* Entrada das abas */
     @keyframes tabImpactIn {
@@ -174,7 +174,7 @@
       filter: drop-shadow(0 0 8px #38bdf8);
     }
 
-    /* Todos os botões: Levitação explosiva + feixe laser + mola */
+    /* Botões: Levitação + feixe laser + mola */
     main button, aside button {
       position: relative;
       overflow: hidden;
@@ -211,47 +211,42 @@
       transition: transform 0.25s cubic-bezier(0.34, 1.8, 0.64, 1);
     }
 
-    /* Cards em geral (Dashboard, Matérias, Mini Cards, Calendário, Gargalos) */
+    /* Blocos e Cards: Apenas brilho neon intenso no hover, sem aumentar de tamanho */
     main .grid > div {
-      transition: transform 0.3s cubic-bezier(0.34, 1.75, 0.64, 1),
-                  border-color 0.22s ease,
-                  box-shadow 0.3s ease,
+      transition: border-color 0.22s ease,
+                  box-shadow 0.25s ease,
                   background-color 0.22s ease !important;
     }
     main .grid > div:hover {
-      transform: translateY(-7px) scale(1.028);
       border-color: #38bdf8 !important;
       background-color: #163370 !important;
-      box-shadow: 0 18px 36px -6px rgba(6, 182, 212, 0.45), 0 0 0 1px rgba(125, 211, 252, 0.5) !important;
-      z-index: 10;
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.55), 0 0 0 1px rgba(125, 211, 252, 0.75) !important;
     }
 
-    /* Tópicos e subtópicos do edital + registros do dia */
+    /* Tópicos, registros e gargalos: Apenas brilho neon estável no hover */
     main .divide-y > div,
     main .space-y-2 > div,
     main .space-y-2\.5 > div {
-      transition: transform 0.24s cubic-bezier(0.34, 1.65, 0.64, 1),
-                  border-color 0.2s ease,
-                  box-shadow 0.24s ease !important;
+      transition: border-color 0.2s ease,
+                  box-shadow 0.24s ease,
+                  background-color 0.2s ease !important;
     }
     main .divide-y > div:hover {
-      transform: translateX(6px);
       background-color: rgba(30, 64, 138, 0.55) !important;
+      box-shadow: inset 3px 0 0 #38bdf8, 0 0 16px rgba(56, 189, 248, 0.25) !important;
     }
     main .space-y-2\.5 > div:hover {
-      transform: translateY(-3px) scale(1.01);
       border-color: #38bdf8 !important;
-      box-shadow: 0 10px 24px -6px rgba(56, 189, 248, 0.35) !important;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.45), 0 0 0 1px rgba(125, 211, 252, 0.5) !important;
     }
 
     /* Campos de busca, selects e inputs com brilho ciano ao passar o mouse */
     input, select, textarea {
-      transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease !important;
+      transition: border-color 0.22s ease, box-shadow 0.22s ease !important;
     }
     input:hover, select:hover, textarea:hover {
       border-color: #38bdf8 !important;
       box-shadow: 0 0 16px rgba(56, 189, 248, 0.32) !important;
-      transform: translateY(-1px);
     }
 
     /* Barras de progresso com fluxo de energia ciano */
