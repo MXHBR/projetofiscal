@@ -1185,36 +1185,58 @@
         <div x-show="activeTab === 'banco_ce'" x-cloak class="space-y-6">
           
           <!-- Cabeçalho + Alternância de Modo -->
-          <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-sm backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-sm backdrop-blur-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
               <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
                 <i data-lucide="check-circle-2" class="w-5 h-5 text-sky-400"></i>
                 <span>Treino & Memorização (Certo ou Errado)</span>
               </h2>
-              <p class="text-slate-400 text-xs sm:text-sm mt-0.5">Crie assertivas diretas de lei seca, jurisprudência ou fórmulas e revise ativamente.</p>
+              <p class="text-slate-400 text-xs sm:text-sm mt-0.5">Resolva questões por matéria/assunto, importe lotes gerados por IA e ataque seus pontos fracos.</p>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
               <button @click="ceMode = 'revisao'; iniciarRevisaoCE()" 
                       :class="ceMode === 'revisao' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-850 text-slate-300 border border-slate-700 hover:bg-slate-800'"
-                      class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
+                      class="px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
                 <i data-lucide="play-circle" class="w-4 h-4"></i>
-                <span>Modo Revisão (<span x-text="getFilteredCE().length"></span>)</span>
+                <span>Resolver (<span x-text="getFilteredCE().length"></span>)</span>
               </button>
+
+              <button @click="iniciarCadernoErrosCE()" 
+                      :class="ceMode === 'revisao' && ceFilterStatus === 'caderno_erros' ? 'bg-rose-600 text-white border-rose-400 shadow-lg shadow-rose-600/20' : 'bg-rose-950/60 text-rose-300 border border-rose-500/40 hover:bg-rose-900/60'"
+                      class="px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
+                <i data-lucide="book-x" class="w-4 h-4 text-rose-400"></i>
+                <span>Caderno de Erros (<span x-text="getCEErrorNotebookCount()"></span>)</span>
+              </button>
+
+              <button @click="ceMode = 'painel'; refreshIcons()" 
+                      :class="ceMode === 'painel' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-850 text-slate-300 border border-slate-700 hover:bg-slate-800'"
+                      class="px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-400"></i>
+                <span>Estatísticas & Pontos Fracos</span>
+              </button>
+
+              <button @click="ceMode = 'importar'; refreshIcons()" 
+                      :class="ceMode === 'importar' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-850 text-slate-300 border border-slate-700 hover:bg-slate-800'"
+                      class="px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
+                <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+                <span>Importar em Massa (IA)</span>
+              </button>
+
               <button @click="ceMode = 'gerenciar'; refreshIcons()" 
                       :class="ceMode === 'gerenciar' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-850 text-slate-300 border border-slate-700 hover:bg-slate-800'"
-                      class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
+                      class="px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                <span>Criar / Gerenciar (<span x-text="flashcardsCE.length"></span>)</span>
+                <span>Banco (<span x-text="flashcardsCE.length"></span>)</span>
               </button>
             </div>
           </div>
 
-          <!-- Filtros por Matéria e Desempenho -->
-          <div class="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 shadow-sm backdrop-blur-sm grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- Filtros Globais de Estudo (Matéria, Assunto e Modo de Fila) -->
+          <div x-show="ceMode === 'revisao' || ceMode === 'gerenciar'" class="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 shadow-sm backdrop-blur-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Filtrar por Matéria:</label>
-              <select x-model="ceFilterMateria" @change="iniciarRevisaoCE()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Escolher Matéria:</label>
+              <select x-model="ceFilterMateria" @change="ceFilterAssunto = 'todos'; iniciarRevisaoCE()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                 <option value="todas">Todas as Matérias</option>
                 <template x-for="m in materias" :key="'cef_' + m.id">
                   <option :value="m.id" x-text="m.nome"></option>
@@ -1223,50 +1245,86 @@
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Filtro de Desempenho:</label>
-              <select x-model="ceFilterStatus" @change="iniciarRevisaoCE()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                <option value="todas">Todas as Assertivas</option>
-                <option value="erradas">Apenas com Erros / Nunca Revisadas</option>
-                <option value="dominadas">Dominadas (Mais acertos que erros)</option>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Filtrar por Assunto:</label>
+              <select x-model="ceFilterAssunto" @change="iniciarRevisaoCE()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="todos">Todos os Assuntos</option>
+                <template x-for="ass in getAvailableCEAssuntosForFilter()" :key="'ceass_' + ass">
+                  <option :value="ass" x-text="ass"></option>
+                </template>
               </select>
             </div>
 
-            <div class="flex items-end">
-              <button @click="embaralharCE()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2 px-3 rounded-lg border border-slate-700 flex items-center justify-center space-x-1.5 transition cursor-pointer">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Modo da Fila:</label>
+              <select x-model="ceFilterStatus" @change="iniciarRevisaoCE()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="todas">Todas as Questões</option>
+                <option value="caderno_erros">📕 Caderno de Erros (Errei ou Taxa &lt; 60%)</option>
+                <option value="nunca_vistas">🆕 Nunca Respondidas</option>
+                <option value="erradas">⚠️ Erradas / Não Dominadas</option>
+                <option value="dominadas">✅ Dominadas (Mais acertos que erros)</option>
+              </select>
+            </div>
+
+            <div class="flex items-end gap-2">
+              <button @click="embaralharCE()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2 px-3 rounded-lg border border-slate-700 flex items-center justify-center space-x-1.5 transition cursor-pointer">
                 <i data-lucide="shuffle" class="w-3.5 h-3.5 text-sky-400"></i>
-                <span>Embaralhar Ordem</span>
+                <span>Embaralhar</span>
+              </button>
+              <button x-show="ceFilterMateria !== 'todas' || ceFilterAssunto !== 'todos' || ceFilterStatus !== 'todas'" 
+                      @click="ceFilterMateria = 'todas'; ceFilterAssunto = 'todos'; ceFilterStatus = 'todas'; iniciarRevisaoCE()"
+                      class="bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white text-xs py-2 px-2.5 rounded-lg border border-slate-700 transition cursor-pointer" title="Limpar Filtros">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
               </button>
             </div>
           </div>
 
-          <!-- ==================== MODO 1: REVISÃO ATIVA (CERTO / ERRADO) ==================== -->
+          <!-- ==================== MODO 1: RESOLUÇÃO DE QUESTÕES (CERTO / ERRADO) ==================== -->
           <div x-show="ceMode === 'revisao'" class="space-y-4">
+            <div x-show="ceFilterStatus === 'caderno_erros'" class="bg-rose-950/50 border border-rose-500/40 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 max-w-4xl mx-auto">
+              <div class="flex items-center space-x-2 text-rose-200 text-xs font-bold">
+                <i data-lucide="book-x" class="w-4 h-4 text-rose-400 shrink-0"></i>
+                <span>Modo Caderno de Erros Ativo — Exibindo apenas questões que você errou ou com aproveitamento abaixo de 60%.</span>
+              </div>
+              <button @click="ceFilterStatus = 'todas'; iniciarRevisaoCE()" class="text-[11px] font-bold text-rose-300 hover:text-white underline shrink-0 cursor-pointer">
+                Sair do Caderno de Erros
+              </button>
+            </div>
+
             <template x-if="ceFilaRevisao.length === 0">
-              <div class="bg-slate-900/80 rounded-2xl p-10 border border-dashed border-slate-800 text-center space-y-3">
-                <p class="text-slate-300 text-sm font-semibold">Nenhuma assertiva encontrada para este filtro.</p>
-                <button @click="ceMode = 'gerenciar'; refreshIcons()" class="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl inline-flex items-center space-x-1.5 cursor-pointer">
-                  <i data-lucide="plus" class="w-4 h-4"></i>
-                  <span>Cadastrar Primeira Assertiva</span>
-                </button>
+              <div class="bg-slate-900/80 rounded-2xl p-10 border border-dashed border-slate-800 text-center space-y-3 max-w-4xl mx-auto">
+                <p class="text-slate-300 text-sm font-semibold">Nenhuma questão encontrada para os filtros atuais.</p>
+                <div class="flex flex-wrap justify-center gap-2">
+                  <button @click="ceFilterMateria = 'todas'; ceFilterAssunto = 'todos'; ceFilterStatus = 'todas'; iniciarRevisaoCE()" class="bg-slate-800 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl inline-flex items-center space-x-1.5 border border-slate-700 cursor-pointer">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                    <span>Mostrar Todas</span>
+                  </button>
+                  <button @click="ceMode = 'importar'; refreshIcons()" class="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl inline-flex items-center space-x-1.5 cursor-pointer">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    <span>Importar Questões via IA</span>
+                  </button>
+                </div>
               </div>
             </template>
 
             <template x-if="ceFilaRevisao.length > 0 && ceCardAtual">
               <div class="bg-slate-900/90 rounded-2xl p-5 sm:p-8 border border-slate-800 shadow-xl space-y-6 max-w-4xl mx-auto">
                 
-                <!-- Topo do Card: Progresso + Matéria + Histórico -->
+                <!-- Topo do Card: Progresso + Matéria + Assunto + Histórico -->
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-4">
                   <div class="flex flex-wrap items-center gap-2">
                     <span class="px-2.5 py-1 rounded-lg bg-slate-850 text-sky-300 border border-slate-700 text-xs font-bold flex items-center space-x-1.5">
                       <span class="w-2 h-2 rounded-full" :style="`background-color: ${getMateriaColor(ceCardAtual.materia_nome)}`"></span>
                       <span x-text="ceCardAtual.materia_nome || 'Geral'"></span>
                     </span>
-                    <span x-show="ceCardAtual.assunto" class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 text-xs" x-text="ceCardAtual.assunto"></span>
+                    <span x-show="ceCardAtual.assunto" class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 text-xs font-medium" x-text="ceCardAtual.assunto"></span>
+                    <span x-show="isCECardWeak(ceCardAtual)" class="px-2 py-0.5 rounded bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[10px] font-bold">
+                      Ponto Fraco / Erro
+                    </span>
                   </div>
                   <div class="flex items-center gap-3 text-xs font-bold font-mono">
-                    <span class="text-emerald-400">✓ <span x-text="ceCardAtual.acertos || 0"></span></span>
-                    <span class="text-rose-400">✕ <span x-text="ceCardAtual.erros || 0"></span></span>
-                    <span class="text-slate-400 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">Item <span x-text="ceIndexAtual + 1"></span> / <span x-text="ceFilaRevisao.length"></span></span>
+                    <span class="text-emerald-400" title="Acertos nesta questão">✓ <span x-text="ceCardAtual.acertos || 0"></span></span>
+                    <span class="text-rose-400" title="Erros nesta questão">✕ <span x-text="ceCardAtual.erros || 0"></span></span>
+                    <span class="text-slate-400 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">Questão <span x-text="ceIndexAtual + 1"></span> / <span x-text="ceFilaRevisao.length"></span></span>
                   </div>
                 </div>
 
@@ -1292,7 +1350,7 @@
                   <div :class="ceAcertouUltimo ? 'bg-emerald-950/60 border-emerald-500 text-emerald-200' : 'bg-rose-950/60 border-rose-500 text-rose-200'"
                        class="p-4 rounded-xl border-l-4 space-y-2">
                     <div class="flex items-center justify-between">
-                      <span class="font-black text-sm uppercase" x-text="ceAcertouUltimo ? 'Você Acertou!' : 'Você Errou!'"></span>
+                      <span class="font-black text-sm uppercase" x-text="ceAcertouUltimo ? 'Você Acertou!' : 'Você Errou! (Adicionada ao Caderno de Erros)'"></span>
                       <span class="text-xs font-extrabold px-2.5 py-0.5 rounded bg-slate-950 text-white border border-slate-700">
                         Gabarito: <span x-text="ceCardAtual.gabarito === 'C' ? 'CERTO' : 'ERRADO'"></span>
                       </span>
@@ -1317,7 +1375,248 @@
             </template>
           </div>
 
-          <!-- ==================== MODO 2: CRIAÇÃO E BANCO DE ASSERTIVAS ==================== -->
+          <!-- ==================== MODO 2: PAINEL DE ESTATÍSTICAS & PONTOS FRACOS ==================== -->
+          <div x-show="ceMode === 'painel'" class="space-y-6">
+            
+            <!-- Cards de Métricas Gerais do Banco C/E -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-1.5">
+                <span class="text-xs text-slate-400 font-semibold">Total de Resoluções</span>
+                <div class="text-2xl font-black text-white" x-text="getCEOverallStats().totalTentativas"></div>
+                <p class="text-[11px] text-slate-400" x-text="`${flashcardsCE.length} questões cadastradas no banco`"></p>
+              </div>
+
+              <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-1.5">
+                <span class="text-xs text-slate-400 font-semibold">Acertos Totais</span>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-2xl font-black text-emerald-400" x-text="getCEOverallStats().acertos"></span>
+                  <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300" x-text="getCEOverallStats().pctAcerto + '%'"></span>
+                </div>
+                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                  <div class="bg-emerald-500 h-full rounded-full" :style="`width: ${getCEOverallStats().pctAcerto}%`"></div>
+                </div>
+              </div>
+
+              <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-1.5">
+                <span class="text-xs text-slate-400 font-semibold">Erros Totais</span>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-2xl font-black text-rose-400" x-text="getCEOverallStats().erros"></span>
+                  <span class="text-xs font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300" x-text="getCEOverallStats().pctErro + '%'"></span>
+                </div>
+                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                  <div class="bg-rose-500 h-full rounded-full" :style="`width: ${getCEOverallStats().pctErro}%`"></div>
+                </div>
+              </div>
+
+              <div class="bg-slate-900/80 border border-rose-500/40 p-4 rounded-xl flex flex-col justify-between space-y-2">
+                <div>
+                  <span class="text-xs text-rose-300 font-bold">Caderno de Erros</span>
+                  <div class="text-2xl font-black text-white" x-text="getCEErrorNotebookCount() + ' questões'"></div>
+                </div>
+                <button @click="iniciarCadernoErrosCE()" class="w-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center space-x-1.5 transition cursor-pointer">
+                  <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                  <span>Estudar Caderno de Erros</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Diagnóstico de Pontos Fracos por Assunto + Desempenho por Matéria -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              <!-- Pontos Fracos Críticos (Assuntos com menor aproveitamento) -->
+              <div class="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div>
+                    <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                      <i data-lucide="flame" class="w-4 h-4 text-rose-400"></i>
+                      <span>Diagnóstico de Pontos Fracos (Por Assunto)</span>
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Assuntos ordenados do menor para o maior índice de acerto.</p>
+                  </div>
+                </div>
+
+                <div class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                  <template x-for="wk in getCEWeakTopics()" :key="wk.key">
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div class="space-y-1.5 min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-850 text-sky-300 border border-slate-700" x-text="wk.materia_nome"></span>
+                          <span class="text-[11px] font-mono font-bold"
+                                :class="wk.pct < 60 ? 'text-rose-400' : (wk.pct < 75 ? 'text-amber-400' : 'text-emerald-400')"
+                                x-text="`${wk.acertos}/${wk.tentativas} acertos (${wk.pct}%) • ${wk.erros} erro(s)`"></span>
+                        </div>
+                        <p class="text-xs font-bold text-white truncate" x-text="wk.assunto"></p>
+                        <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                          <div class="h-full rounded-full"
+                               :class="wk.pct < 60 ? 'bg-rose-500' : (wk.pct < 75 ? 'bg-amber-500' : 'bg-emerald-500')"
+                               :style="`width: ${wk.pct}%`"></div>
+                        </div>
+                      </div>
+
+                      <button @click="estudarAssuntoEspecificoCE(wk.materia_id, wk.assunto)"
+                              class="shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center justify-center space-x-1.5 transition cursor-pointer">
+                        <i data-lucide="target" class="w-3.5 h-3.5"></i>
+                        <span>Treinar Ponto Fraco</span>
+                      </button>
+                    </div>
+                  </template>
+
+                  <div x-show="getCEWeakTopics().length === 0" class="py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
+                    Responda algumas questões primeiro para gerar o ranking de pontos fracos por assunto!
+                  </div>
+                </div>
+              </div>
+
+              <!-- Desempenho Consolidado por Matéria -->
+              <div class="lg:col-span-5 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
+                <div class="border-b border-slate-800 pb-3">
+                  <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                    <i data-lucide="pie-chart" class="w-4 h-4 text-sky-400"></i>
+                    <span>Aproveitamento por Matéria</span>
+                  </h3>
+                  <p class="text-xs text-slate-400 mt-0.5">Clique em qualquer matéria para praticá-la agora.</p>
+                </div>
+
+                <div class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                  <template x-for="ms in getCEMateriaStats()" :key="ms.materia_id || ms.materia_nome">
+                    <div @click="estudarMateriaEspecificaCE(ms.materia_id)"
+                         class="bg-slate-950/90 border border-slate-800 hover:border-sky-500/50 rounded-xl p-3.5 space-y-2 cursor-pointer transition">
+                      <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-white truncate" x-text="ms.materia_nome"></span>
+                        <span class="text-xs font-mono font-extrabold px-2 py-0.5 rounded"
+                              :class="ms.pct >= 75 ? 'bg-emerald-500/20 text-emerald-300' : (ms.pct >= 55 ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300')"
+                              x-text="ms.tentativas > 0 ? ms.pct + '%' : 'Sem treino'"></span>
+                      </div>
+                      <div class="flex justify-between text-[11px] font-mono text-slate-400">
+                        <span x-text="`${ms.totalQuestoes} questões no banco`"></span>
+                        <span x-text="`✓ ${ms.acertos} | ✕ ${ms.erros}`"></span>
+                      </div>
+                      <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full"
+                             :class="ms.pct >= 75 ? 'bg-emerald-500' : (ms.pct >= 55 ? 'bg-amber-500' : 'bg-rose-500')"
+                             :style="`width: ${ms.pct}%`"></div>
+                      </div>
+                    </div>
+                  </template>
+
+                  <div x-show="getCEMateriaStats().length === 0" class="py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
+                    Nenhuma questão cadastrada ainda.
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ==================== MODO 3: IMPORTAÇÃO EM MASSA & MODELO PARA IA ==================== -->
+          <div x-show="ceMode === 'importar'" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Coluna Esquerda: Extrair Modelo/Prompt para Agentes de IA -->
+            <div class="lg:col-span-5 bg-slate-900/80 rounded-2xl p-5 border border-slate-800 space-y-4 h-fit">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-xs font-extrabold text-white uppercase tracking-wider flex items-center gap-2">
+                  <i data-lucide="bot" class="w-4 h-4 text-sky-400"></i>
+                  <span>1. Extrair Modelo para Agentes de IA</span>
+                </h3>
+              </div>
+
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Copie o prompt estruturado abaixo (ou baixe o arquivo <code>.txt</code>) e cole no ChatGPT, Claude ou Gemini junto com o seu PDF/lei seca. A IA devolverá as questões exatamente no formato pronto para importar aqui!
+              </p>
+
+              <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] font-mono text-sky-200 whitespace-pre-wrap max-h-64 overflow-y-auto leading-relaxed" x-text="getCEAIModelPrompt()"></div>
+
+              <div class="flex flex-col sm:flex-row gap-2">
+                <button @click="copiarModeloIA()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center space-x-1.5 transition cursor-pointer">
+                  <i data-lucide="copy" class="w-4 h-4"></i>
+                  <span x-text="cePromptCopiado ? 'Modelo Copiado!' : 'Copiar Prompt Modelo'"></span>
+                </button>
+                <button @click="baixarModeloIATxt()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs py-2.5 px-3.5 rounded-xl border border-slate-700 flex items-center justify-center space-x-1.5 transition cursor-pointer">
+                  <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Baixar .TXT</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Coluna Direita: Escolher Matéria, Selecionar Assuntos e Importar em Massa -->
+            <div class="lg:col-span-7 bg-slate-900/80 rounded-2xl p-5 border border-slate-800 space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                <h3 class="text-xs font-extrabold text-white uppercase tracking-wider flex items-center gap-2">
+                  <i data-lucide="upload-cloud" class="w-4 h-4 text-amber-400"></i>
+                  <span>2. Importar Questões em Massa por Matéria & Assunto</span>
+                </h3>
+                <button @click="$refs.ceJsonFileInput.click()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center space-x-1.5 cursor-pointer">
+                  <i data-lucide="file-json" class="w-3.5 h-3.5 text-sky-400"></i>
+                  <span>Carregar Arquivo (.json / .txt)</span>
+                </button>
+                <input type="file" x-ref="ceJsonFileInput" @change="carregarArquivoCE($event)" accept=".json,.txt" class="hidden">
+              </div>
+
+              <!-- Passo A: Escolher Matéria de Destino -->
+              <div>
+                <label class="block text-xs font-bold text-slate-200 mb-1">Matéria de Destino *</label>
+                <select x-model="ceImportMateriaId" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                  <option value="">Selecione a matéria em que as questões serão salvas...</option>
+                  <template x-for="m in materias" :key="'ceimp_' + m.id">
+                    <option :value="m.id" x-text="m.nome"></option>
+                  </template>
+                </select>
+              </div>
+
+              <!-- Passo B: Colar o JSON gerado pela IA -->
+              <div>
+                <label class="block text-xs font-bold text-slate-200 mb-1">Cole o JSON gerado pela IA *</label>
+                <textarea x-model="ceImportRawText" @input="analisarLoteCE()" rows="6"
+                          placeholder='Cole aqui o bloco JSON gerado pelo agente de IA. Ex: [{"assunto": "Decadência", "enunciado": "...", "gabarito": "E", "justificativa": "..."}]'
+                          class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-100 focus:outline-none focus:border-indigo-500"></textarea>
+                <p x-show="ceImportError" class="text-xs text-rose-400 font-semibold mt-1" x-text="ceImportError"></p>
+              </div>
+
+              <!-- Passo C: Seleção de Assuntos Antes de Confirmar a Importação -->
+              <template x-if="ceImportParsedList.length > 0">
+                <div class="bg-slate-950/90 border border-sky-500/40 rounded-xl p-4 space-y-3">
+                  <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+                    <div>
+                      <span class="text-xs font-extrabold text-sky-300">Selecione quais assuntos deseja importar:</span>
+                      <p class="text-[11px] text-slate-400" x-text="`${ceImportParsedList.length} questões identificadas em ${ceImportAssuntosGrupos.length} assunto(s).`"></p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button type="button" @click="toggleTodosAssuntosImportCE(true)" class="text-[11px] text-sky-300 hover:underline font-bold cursor-pointer">Marcar Todos</button>
+                      <span class="text-slate-600">|</span>
+                      <button type="button" @click="toggleTodosAssuntosImportCE(false)" class="text-[11px] text-slate-400 hover:underline font-bold cursor-pointer">Desmarcar</button>
+                    </div>
+                  </div>
+
+                  <div class="space-y-2 max-h-52 overflow-y-auto pr-1">
+                    <template x-for="grp in ceImportAssuntosGrupos" :key="grp.assunto">
+                      <label class="flex items-center justify-between bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-lg p-2.5 cursor-pointer">
+                        <div class="flex items-center space-x-2.5 min-w-0">
+                          <input type="checkbox" :value="grp.assunto" x-model="ceImportSelectedAssuntos" class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0 w-4 h-4">
+                          <span class="text-xs font-bold text-white truncate" x-text="grp.assunto"></span>
+                        </div>
+                        <span class="text-[11px] font-mono bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded shrink-0" x-text="`${grp.count} questão(ões)`"></span>
+                      </label>
+                    </template>
+                  </div>
+
+                  <div class="pt-2 flex items-center justify-between gap-3">
+                    <span class="text-xs text-slate-300 font-semibold">
+                      Selecionadas para importar: <strong class="text-emerald-400" x-text="getCEImportSelectedCount()"></strong>
+                    </span>
+                    <button type="button" @click="confirmarImportacaoMassaCE()" 
+                            :disabled="getCEImportSelectedCount() === 0 || !ceImportMateriaId"
+                            class="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-extrabold text-xs py-2.5 px-5 rounded-xl flex items-center space-x-1.5 transition cursor-pointer">
+                      <i data-lucide="check-circle" class="w-4 h-4"></i>
+                      <span>Confirmar Importação</span>
+                    </button>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+          </div>
+
+          <!-- ==================== MODO 4: CRIAÇÃO MANUAL E BANCO DE ASSERTIVAS ==================== -->
           <div x-show="ceMode === 'gerenciar'" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             <!-- Formulário de Cadastro / Edição -->
@@ -1420,7 +1719,7 @@
                 </template>
 
                 <div x-show="getFilteredCE().length === 0" class="py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
-                  Nenhuma assertiva cadastrada ainda. Use o formulário ao lado para criar!
+                  Nenhuma assertiva cadastrada ainda. Use o formulário ao lado ou importe em massa via IA!
                 </div>
               </div>
             </div>
@@ -2092,6 +2391,7 @@
 
         ceMode: 'revisao',
         ceFilterMateria: 'todas',
+        ceFilterAssunto: 'todos',
         ceFilterStatus: 'todas',
         ceSearchText: '',
         ceFilaRevisao: [],
@@ -2100,6 +2400,14 @@
         ceAcertouUltimo: false,
         ceForm: { id: null, materia_id: '', assunto: '', enunciado: '', gabarito: 'C', justificativa: '' },
         get ceCardAtual() { return this.ceFilaRevisao[this.ceIndexAtual] || null; },
+
+        cePromptCopiado: false,
+        ceImportMateriaId: '',
+        ceImportRawText: '',
+        ceImportError: '',
+        ceImportParsedList: [],
+        ceImportAssuntosGrupos: [],
+        ceImportSelectedAssuntos: [],
 
         timelinePeriod: '7',
         timelineDateStart: new Date().toISOString().split('T')[0],
@@ -3849,14 +4157,70 @@
           this.questoes.filter(q => this.isSameMateria(mat.nome, q.materia)).forEach(q => {
             if (q.assunto && q.assunto.trim()) set.add(q.assunto.trim());
           });
+          this.flashcardsCE.filter(c => c.materia_id === mat.id).forEach(c => {
+            if (c.assunto && c.assunto.trim()) set.add(c.assunto.trim());
+          });
           return Array.from(set);
+        },
+
+        getAvailableCEAssuntosForFilter() {
+          const set = new Set();
+          this.flashcardsCE.forEach(item => {
+            if (this.ceFilterMateria !== 'todas' && item.materia_id !== this.ceFilterMateria) return;
+            if (item.assunto && item.assunto.trim()) {
+              set.add(item.assunto.trim());
+            }
+          });
+          return Array.from(set).sort();
+        },
+
+        isCECardWeak(item) {
+          const ac = item.acertos || 0;
+          const er = item.erros || 0;
+          const tot = ac + er;
+          if (er === 0) return false;
+          if (item.ultimo_resultado === 'E') return true;
+          return tot > 0 && (ac / tot) < 0.6;
+        },
+
+        getCEErrorNotebookCount() {
+          return this.flashcardsCE.filter(item => this.isCECardWeak(item)).length;
+        },
+
+        iniciarCadernoErrosCE() {
+          this.ceMode = 'revisao';
+          this.ceFilterStatus = 'caderno_erros';
+          this.iniciarRevisaoCE();
+        },
+
+        estudarAssuntoEspecificoCE(materiaId, assunto) {
+          this.ceMode = 'revisao';
+          this.ceFilterMateria = materiaId || 'todas';
+          this.ceFilterAssunto = assunto || 'todos';
+          this.ceFilterStatus = 'todas';
+          this.iniciarRevisaoCE();
+        },
+
+        estudarMateriaEspecificaCE(materiaId) {
+          this.ceMode = 'revisao';
+          this.ceFilterMateria = materiaId || 'todas';
+          this.ceFilterAssunto = 'todos';
+          this.ceFilterStatus = 'todas';
+          this.iniciarRevisaoCE();
         },
 
         getFilteredCE() {
           return this.flashcardsCE.filter(item => {
             if (this.ceFilterMateria !== 'todas' && item.materia_id !== this.ceFilterMateria) return false;
-            if (this.ceFilterStatus === 'erradas' && (item.acertos || 0) > (item.erros || 0)) return false;
-            if (this.ceFilterStatus === 'dominadas' && (item.acertos || 0) <= (item.erros || 0)) return false;
+            if (this.ceFilterAssunto !== 'todos' && (item.assunto || '').trim() !== this.ceFilterAssunto) return false;
+
+            const ac = item.acertos || 0;
+            const er = item.erros || 0;
+            if (this.ceFilterStatus === 'caderno_erros' && !this.isCECardWeak(item)) return false;
+            if (this.ceFilterStatus === 'nunca_vistas' && (ac + er) > 0) return false;
+            if (this.ceFilterStatus === 'erradas' && ac > er) return false;
+            if (this.ceFilterStatus === 'dominadas' && ac <= er) return false;
+
             if (this.ceSearchText.trim()) {
               const q = this.ceSearchText.toLowerCase();
               const matchEnun = (item.enunciado || '').toLowerCase().includes(q);
@@ -3865,6 +4229,226 @@
             }
             return true;
           });
+        },
+
+        getCEOverallStats() {
+          let acertos = 0;
+          let erros = 0;
+          this.flashcardsCE.forEach(item => {
+            acertos += (item.acertos || 0);
+            erros += (item.erros || 0);
+          });
+          const totalTentativas = acertos + erros;
+          const pctAcerto = totalTentativas > 0 ? Math.round((acertos / totalTentativas) * 100) : 0;
+          const pctErro = totalTentativas > 0 ? Math.round((erros / totalTentativas) * 100) : 0;
+          return { totalTentativas, acertos, erros, pctAcerto, pctErro };
+        },
+
+        getCEWeakTopics() {
+          const map = {};
+          this.flashcardsCE.forEach(item => {
+            const ac = item.acertos || 0;
+            const er = item.erros || 0;
+            const tent = ac + er;
+            if (tent === 0) return;
+
+            const matId = item.materia_id || '';
+            const matNome = item.materia_nome || 'Geral';
+            const assunto = (item.assunto && item.assunto.trim()) ? item.assunto.trim() : 'Geral / Sem Assunto';
+            const key = `${matId}_${matNome}_${assunto}`;
+
+            if (!map[key]) {
+              map[key] = { key, materia_id: matId, materia_nome: matNome, assunto, acertos: 0, erros: 0, tentativas: 0 };
+            }
+            map[key].acertos += ac;
+            map[key].erros += er;
+            map[key].tentativas += tent;
+          });
+
+          return Object.values(map)
+            .map(x => ({ ...x, pct: Math.round((x.acertos / x.tentativas) * 100) }))
+            .sort((a, b) => {
+              if (a.pct !== b.pct) return a.pct - b.pct;
+              return b.erros - a.erros;
+            });
+        },
+
+        getCEMateriaStats() {
+          const map = {};
+          this.flashcardsCE.forEach(item => {
+            const matId = item.materia_id || '';
+            const matNome = item.materia_nome || 'Geral';
+            const key = `${matId}_${matNome}`;
+            if (!map[key]) {
+              map[key] = { materia_id: matId, materia_nome: matNome, totalQuestoes: 0, acertos: 0, erros: 0 };
+            }
+            map[key].totalQuestoes += 1;
+            map[key].acertos += (item.acertos || 0);
+            map[key].erros += (item.erros || 0);
+          });
+
+          return Object.values(map).map(m => {
+            const tentativas = m.acertos + m.erros;
+            const pct = tentativas > 0 ? Math.round((m.acertos / tentativas) * 100) : 0;
+            return { ...m, tentativas, pct };
+          }).sort((a, b) => a.pct - b.pct);
+        },
+
+        getCEAIModelPrompt() {
+          return `Atue como um examinador especialista da banca CEBRASPE para concursos da Área Fiscal (Auditor Fiscal).
+Com base no conteúdo/lei fornecido, elabore 20 assertivas inéditas no estilo CERTO ou ERRADO, cobrando literalidade da lei, exceções, prazos e jurisprudência sumulada.
+
+REGRAS ESTRITAS DE SAÍDA:
+1. Responda EXCLUSIVAMENTE com um array JSON válido, sem texto antes ou depois e sem blocos markdown.
+2. Use exatamente estas 4 chaves em cada objeto:
+   - "assunto": Nome exato do tópico/assunto (ex: "Decadência Tributária")
+   - "enunciado": A afirmação objetiva a ser julgada
+   - "gabarito": Apenas "C" (para Certo) ou "E" (para Errado)
+   - "justificativa": Fundamentação legal/doutrinária direta explicando o gabarito
+
+EXEMPLO DE FORMATO:
+[
+  {
+    "assunto": "Lançamento Tributário",
+    "enunciado": "O lançamento reporta-se à data da ocorrência do fato gerador da obrigação e rege-se pela lei então vigente, ainda que posteriormente modificada ou revogada.",
+    "gabarito": "C",
+    "justificativa": "Correto. Literalidade do art. 144, caput, do Código Tributário Nacional (CTN)."
+  }
+]`;
+        },
+
+        copiarModeloIA() {
+          navigator.clipboard.writeText(this.getCEAIModelPrompt()).then(() => {
+            this.cePromptCopiado = true;
+            setTimeout(() => { this.cePromptCopiado = false; }, 2500);
+          });
+        },
+
+        baixarModeloIATxt() {
+          const blob = new Blob([this.getCEAIModelPrompt()], { type: 'text/plain;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'modelo_prompt_ia_questoes_ce.txt';
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+
+        carregarArquivoCE(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.ceImportRawText = e.target.result || '';
+            this.analisarLoteCE();
+            event.target.value = '';
+          };
+          reader.readAsText(file);
+        },
+
+        analisarLoteCE() {
+          this.ceImportError = '';
+          this.ceImportParsedList = [];
+          this.ceImportAssuntosGrupos = [];
+          this.ceImportSelectedAssuntos = [];
+
+          let raw = (this.ceImportRawText || '').trim();
+          if (!raw) return;
+
+          raw = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+
+          try {
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) {
+              this.ceImportError = 'O conteúdo deve ser uma lista JSON começando com [ e terminando com ].';
+              return;
+            }
+
+            const validItems = [];
+            const grupoMap = {};
+
+            parsed.forEach(obj => {
+              if (!obj || !obj.enunciado) return;
+              const assunto = (obj.assunto && String(obj.assunto).trim()) ? String(obj.assunto).trim() : 'Geral / Sem Assunto';
+              const gabRaw = String(obj.gabarito || 'C').trim().toUpperCase();
+              const gabarito = (gabRaw === 'E' || gabRaw === 'ERRADO') ? 'E' : 'C';
+
+              validItems.push({
+                assunto,
+                enunciado: String(obj.enunciado).trim(),
+                gabarito,
+                justificativa: obj.justificativa ? String(obj.justificativa).trim() : ''
+              });
+
+              grupoMap[assunto] = (grupoMap[assunto] || 0) + 1;
+            });
+
+            if (validItems.length === 0) {
+              this.ceImportError = 'Nenhuma questão válida com campo "enunciado" foi encontrada.';
+              return;
+            }
+
+            this.ceImportParsedList = validItems;
+            this.ceImportAssuntosGrupos = Object.keys(grupoMap).map(k => ({ assunto: k, count: grupoMap[k] }));
+            this.ceImportSelectedAssuntos = Object.keys(grupoMap);
+          } catch (err) {
+            this.ceImportError = 'JSON inválido. Verifique se copiou todo o bloco da IA corretamente.';
+          }
+        },
+
+        toggleTodosAssuntosImportCE(marcar) {
+          if (marcar) {
+            this.ceImportSelectedAssuntos = this.ceImportAssuntosGrupos.map(g => g.assunto);
+          } else {
+            this.ceImportSelectedAssuntos = [];
+          }
+        },
+
+        getCEImportSelectedCount() {
+          return this.ceImportParsedList.filter(q => this.ceImportSelectedAssuntos.includes(q.assunto)).length;
+        },
+
+        confirmarImportacaoMassaCE() {
+          if (!this.ceImportMateriaId) {
+            alert('Escolha a matéria de destino antes de importar.');
+            return;
+          }
+          const mat = this.materias.find(m => m.id === this.ceImportMateriaId);
+          const filtradas = this.ceImportParsedList.filter(q => this.ceImportSelectedAssuntos.includes(q.assunto));
+
+          if (filtradas.length === 0) {
+            alert('Selecione pelo menos um assunto para importar.');
+            return;
+          }
+
+          const now = Date.now();
+          filtradas.forEach((item, idx) => {
+            this.flashcardsCE.unshift({
+              id: `ce_${now}_${idx}_${Math.random().toString(36).substr(2, 4)}`,
+              materia_id: mat ? mat.id : '',
+              materia_nome: mat ? mat.nome : 'Geral',
+              assunto: item.assunto === 'Geral / Sem Assunto' ? '' : item.assunto,
+              enunciado: item.enunciado,
+              gabarito: item.gabarito,
+              justificativa: item.justificativa,
+              acertos: 0,
+              erros: 0
+            });
+          });
+
+          this.saveAll();
+          alert(`${filtradas.length} questão(ões) importada(s) com sucesso em ${mat ? mat.nome : 'Geral'}!`);
+          
+          this.ceImportRawText = '';
+          this.ceImportParsedList = [];
+          this.ceImportAssuntosGrupos = [];
+          this.ceImportSelectedAssuntos = [];
+          
+          this.ceFilterMateria = mat ? mat.id : 'todas';
+          this.ceFilterAssunto = 'todos';
+          this.ceFilterStatus = 'todas';
+          this.ceMode = 'revisao';
+          this.iniciarRevisaoCE();
         },
 
         iniciarRevisaoCE() {
@@ -3893,8 +4477,10 @@
 
           if (this.ceAcertouUltimo) {
             this.ceCardAtual.acertos = (this.ceCardAtual.acertos || 0) + 1;
+            this.ceCardAtual.ultimo_resultado = 'C';
           } else {
             this.ceCardAtual.erros = (this.ceCardAtual.erros || 0) + 1;
+            this.ceCardAtual.ultimo_resultado = 'E';
           }
           this.ceCardAtual.ultima_revisao = new Date().toISOString().split('T')[0];
           this.saveAll();
