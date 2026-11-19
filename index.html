@@ -1184,123 +1184,410 @@
         <!-- ==================== TAB 4.5: QUESTÕES CERTO / ERRADO ==================== -->
         <div x-show="activeTab === 'banco_ce'" x-cloak class="space-y-6">
           
-          <!-- Cabeçalho + Alternância de Modo -->
+          <!-- Cabeçalho Principal + Botões de Ação -->
           <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-sm backdrop-blur-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
               <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
                 <i data-lucide="check-circle-2" class="w-5 h-5 text-sky-400"></i>
-                <span>Treino & Memorização (Certo ou Errado)</span>
+                <span>Banco de Questões (Certo ou Errado)</span>
               </h2>
-              <p class="text-slate-400 text-xs sm:text-sm mt-0.5">Resolva questões por matéria/assunto, importe lotes gerados por IA e ataque seus pontos fracos.</p>
+              <p class="text-slate-400 text-xs sm:text-sm mt-0.5">Analise seus indicadores, personalize seus cards e escolha o modo de resolução.</p>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
-              <button @click="ceMode = 'revisao'; iniciarRevisaoCE()" 
-                      :class="ceMode === 'revisao' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-850 text-slate-300 border border-slate-700 hover:bg-slate-800'"
-                      class="px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
-                <i data-lucide="play-circle" class="w-4 h-4"></i>
-                <span>Resolver (<span x-text="getFilteredCE().length"></span>)</span>
+              <!-- BOTÃO PRINCIPAL: RESOLVER QUESTÕES -->
+              <button @click="ceMode = 'escolher_treino'; refreshIcons()" 
+                      :class="ceMode === 'escolher_treino' || ceMode === 'revisao' ? 'bg-emerald-600 text-white border-emerald-400 shadow-lg shadow-emerald-600/25' : 'bg-emerald-600/90 hover:bg-emerald-500 text-white border-emerald-400/50'"
+                      class="px-4 py-2.5 rounded-xl text-xs font-extrabold border flex items-center space-x-1.5 transition cursor-pointer">
+                <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                <span>Resolver Questões</span>
               </button>
 
-              <button @click="iniciarCadernoErrosCE()" 
-                      :class="ceMode === 'revisao' && ceFilterStatus === 'caderno_erros' ? 'bg-rose-600 text-white border-rose-400 shadow-lg shadow-rose-600/20' : 'bg-rose-950/60 text-rose-300 border border-rose-500/40 hover:bg-rose-900/60'"
-                      class="px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
-                <i data-lucide="book-x" class="w-4 h-4 text-rose-400"></i>
-                <span>Caderno de Erros (<span x-text="getCEErrorNotebookCount()"></span>)</span>
-              </button>
-
-              <button @click="ceMode = 'painel'; refreshIcons()" 
+              <!-- VOLTAR PARA PÁGINA INICIAL (ESTATÍSTICAS) -->
+              <button @click="ceMode = 'painel'; $nextTick(() => renderCECharts()); refreshIcons()" 
                       :class="ceMode === 'painel' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-850 text-slate-300 border border-slate-700 hover:bg-slate-800'"
-                      class="px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
-                <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-400"></i>
-                <span>Estatísticas & Pontos Fracos</span>
+                      class="px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
+                <i data-lucide="layout-grid" class="w-4 h-4 text-sky-400"></i>
+                <span>Painel & Gráficos</span>
               </button>
 
               <button @click="ceMode = 'importar'; refreshIcons()" 
                       :class="ceMode === 'importar' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-850 text-slate-300 border border-slate-700 hover:bg-slate-800'"
-                      class="px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
+                      class="px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
                 <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
-                <span>Importar em Massa (IA)</span>
+                <span>Importar (IA)</span>
               </button>
 
               <button @click="ceMode = 'gerenciar'; refreshIcons()" 
                       :class="ceMode === 'gerenciar' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-850 text-slate-300 border border-slate-700 hover:bg-slate-800'"
-                      class="px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
-                <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                <span>Banco (<span x-text="flashcardsCE.length"></span>)</span>
+                      class="px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer">
+                <i data-lucide="database" class="w-4 h-4"></i>
+                <span>Gerenciar (<span x-text="flashcardsCE.length"></span>)</span>
               </button>
             </div>
           </div>
 
-          <!-- Filtros Globais de Estudo (Matéria, Assunto e Modo de Fila) -->
-          <div x-show="ceMode === 'revisao' || ceMode === 'gerenciar'" class="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 shadow-sm backdrop-blur-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Escolher Matéria:</label>
-              <select x-model="ceFilterMateria" @change="ceFilterAssunto = 'todos'; iniciarRevisaoCE()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                <option value="todas">Todas as Matérias</option>
-                <template x-for="m in materias" :key="'cef_' + m.id">
-                  <option :value="m.id" x-text="m.nome"></option>
-                </template>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Filtrar por Assunto:</label>
-              <select x-model="ceFilterAssunto" @change="iniciarRevisaoCE()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                <option value="todos">Todos os Assuntos</option>
-                <template x-for="ass in getAvailableCEAssuntosForFilter()" :key="'ceass_' + ass">
-                  <option :value="ass" x-text="ass"></option>
-                </template>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Modo da Fila:</label>
-              <select x-model="ceFilterStatus" @change="iniciarRevisaoCE()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                <option value="todas">Todas as Questões</option>
-                <option value="caderno_erros">📕 Caderno de Erros (Errei ou Taxa &lt; 60%)</option>
-                <option value="nunca_vistas">🆕 Nunca Respondidas</option>
-                <option value="erradas">⚠️ Erradas / Não Dominadas</option>
-                <option value="dominadas">✅ Dominadas (Mais acertos que erros)</option>
-              </select>
-            </div>
-
-            <div class="flex items-end gap-2">
-              <button @click="embaralharCE()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2 px-3 rounded-lg border border-slate-700 flex items-center justify-center space-x-1.5 transition cursor-pointer">
-                <i data-lucide="shuffle" class="w-3.5 h-3.5 text-sky-400"></i>
-                <span>Embaralhar</span>
-              </button>
-              <button x-show="ceFilterMateria !== 'todas' || ceFilterAssunto !== 'todos' || ceFilterStatus !== 'todas'" 
-                      @click="ceFilterMateria = 'todas'; ceFilterAssunto = 'todos'; ceFilterStatus = 'todas'; iniciarRevisaoCE()"
-                      class="bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white text-xs py-2 px-2.5 rounded-lg border border-slate-700 transition cursor-pointer" title="Limpar Filtros">
-                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- ==================== MODO 1: RESOLUÇÃO DE QUESTÕES (CERTO / ERRADO) ==================== -->
-          <div x-show="ceMode === 'revisao'" class="space-y-4">
-            <div x-show="ceFilterStatus === 'caderno_erros'" class="bg-rose-950/50 border border-rose-500/40 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 max-w-4xl mx-auto">
-              <div class="flex items-center space-x-2 text-rose-200 text-xs font-bold">
-                <i data-lucide="book-x" class="w-4 h-4 text-rose-400 shrink-0"></i>
-                <span>Modo Caderno de Erros Ativo — Exibindo apenas questões que você errou ou com aproveitamento abaixo de 60%.</span>
+          <!-- ==================== MODO 1 (PÁGINA INICIAL): PAINEL DE CARDS EDITÁVEIS, REORDENÁVEIS E OCULTÁVEIS ==================== -->
+          <div x-show="ceMode === 'painel'" class="space-y-4">
+            
+            <!-- Barra de Controle de Layout dos Cards -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center space-x-2 text-xs text-slate-300">
+                <i data-lucide="grip-horizontal" class="w-4 h-4 text-sky-400"></i>
+                <span>Arraste os cards para reordenar, edite títulos/cores ou oculte o que não quiser ver.</span>
               </div>
-              <button @click="ceFilterStatus = 'todas'; iniciarRevisaoCE()" class="text-[11px] font-bold text-rose-300 hover:text-white underline shrink-0 cursor-pointer">
-                Sair do Caderno de Erros
+
+              <div class="flex flex-wrap items-center gap-2">
+                <!-- Botões para reexibir cards ocultos -->
+                <template x-if="ceDashboardCards.some(c => c.hidden)">
+                  <div class="flex flex-wrap items-center gap-1.5 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-lg">
+                    <span class="text-[11px] text-slate-400 font-semibold">Ocultos:</span>
+                    <template x-for="hc in ceDashboardCards.filter(c => c.hidden)" :key="'unhide_' + hc.id">
+                      <button @click="toggleCECardVisibility(hc.id)" class="text-[11px] bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded flex items-center space-x-1 cursor-pointer">
+                        <i data-lucide="eye" class="w-3 h-3"></i>
+                        <span x-text="hc.title"></span>
+                      </button>
+                    </template>
+                  </div>
+                </template>
+
+                <button @click="resetCEDashboardLayout()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1.5 rounded-lg font-semibold flex items-center space-x-1 cursor-pointer">
+                  <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                  <span>Restaurar Padrão</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Grid Dinâmico de Cards Editáveis, Reordenáveis e Ocultáveis -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              <template x-for="(card, idx) in ceDashboardCards" :key="card.id">
+                <div x-show="!card.hidden"
+                     draggable="true"
+                     @dragstart="draggedCECardIdx = idx"
+                     @dragover.prevent
+                     @drop="dropCECard(idx)"
+                     :class="card.span === 'full' ? 'lg:col-span-12' : (card.span === 'half' ? 'lg:col-span-6' : 'lg:col-span-3')"
+                     :style="`border-top: 3px solid ${card.accent || '#38bdf8'}`"
+                     class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3 transition-all relative group">
+                  
+                  <!-- Cabeçalho do Card com Controles (Arrastar, Editar, Ocultar) -->
+                  <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+                    <div class="flex items-center space-x-2 min-w-0 cursor-move" title="Arraste para mover este card">
+                      <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-500 group-hover:text-sky-400 shrink-0"></i>
+                      <h3 class="text-xs sm:text-sm font-extrabold text-white truncate" x-text="card.title"></h3>
+                    </div>
+
+                    <div class="flex items-center space-x-1 shrink-0">
+                      <button @click="openEditCECardModal(card)" class="p-1.5 rounded-lg bg-slate-850 hover:bg-indigo-600 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer" title="Editar Card (Título, Cor, Tamanho)">
+                        <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+                      </button>
+                      <button @click="toggleCECardVisibility(card.id)" class="p-1.5 rounded-lg bg-slate-850 hover:bg-rose-600 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer" title="Ocultar Card">
+                        <i data-lucide="eye-off" class="w-3.5 h-3.5"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- CARD 1: Resumo Geral -->
+                  <template x-if="card.type === 'kpi_total'">
+                    <div class="space-y-2 pt-1">
+                      <div class="flex items-baseline justify-between">
+                        <span class="text-3xl font-black text-white" x-text="getCEOverallStats().totalTentativas"></span>
+                        <span class="text-xs font-mono text-sky-300 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded" x-text="`${flashcardsCE.length} cadastradas`"></span>
+                      </div>
+                      <p class="text-xs text-slate-400" x-text="`${getCEOverallStats().respondidasUnicas} questões únicas já respondidas (${getCEOverallStats().nuncaVistas} inéditas).`"></p>
+                    </div>
+                  </template>
+
+                  <!-- CARD 2: Acertos -->
+                  <template x-if="card.type === 'kpi_acertos'">
+                    <div class="space-y-2 pt-1">
+                      <div class="flex items-baseline justify-between">
+                        <span class="text-3xl font-black text-emerald-400" x-text="getCEOverallStats().acertos"></span>
+                        <span class="text-sm font-extrabold px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300" x-text="getCEOverallStats().pctAcerto + '%'"></span>
+                      </div>
+                      <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                        <div class="bg-emerald-500 h-full rounded-full" :style="`width: ${getCEOverallStats().pctAcerto}%`"></div>
+                      </div>
+                      <p class="text-[11px] text-slate-400">Meta recomendada: acima de 80% líquidos.</p>
+                    </div>
+                  </template>
+
+                  <!-- CARD 3: Erros -->
+                  <template x-if="card.type === 'kpi_erros'">
+                    <div class="space-y-2 pt-1">
+                      <div class="flex items-baseline justify-between">
+                        <span class="text-3xl font-black text-rose-400" x-text="getCEOverallStats().erros"></span>
+                        <span class="text-sm font-extrabold px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300" x-text="getCEOverallStats().pctErro + '%'"></span>
+                      </div>
+                      <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                        <div class="bg-rose-500 h-full rounded-full" :style="`width: ${getCEOverallStats().pctErro}%`"></div>
+                      </div>
+                      <p class="text-[11px] text-slate-400" x-text="`${getCEErrorNotebookCount()} questões no Caderno de Erros.`"></p>
+                    </div>
+                  </template>
+
+                  <!-- CARD 4: Saldo Líquido (Estilo CEBRASPE) -->
+                  <template x-if="card.type === 'kpi_liquido'">
+                    <div class="space-y-2 pt-1">
+                      <div class="flex items-baseline justify-between">
+                        <span class="text-3xl font-black" :class="getCEOverallStats().saldoLiquido >= 0 ? 'text-sky-400' : 'text-rose-400'" x-text="getCEOverallStats().saldoLiquido"></span>
+                        <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-850 text-slate-300 border border-slate-700" x-text="getCEOverallStats().pctLiquido + '% líq.'"></span>
+                      </div>
+                      <p class="text-[11px] text-slate-400">Critério CEBRASPE (Acertos − Erros).</p>
+                    </div>
+                  </template>
+
+                  <!-- CARD 5: Gráfico Acertos vs Erros (Rosca) -->
+                  <template x-if="card.type === 'chart_pizza'">
+                    <div class="space-y-2">
+                      <div class="h-56 relative w-full flex items-center justify-center">
+                        <canvas id="ceDoughnutChartCanvas"></canvas>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- CARD 6: Gráfico Desempenho por Matéria (Barras) -->
+                  <template x-if="card.type === 'chart_materias'">
+                    <div class="space-y-2">
+                      <div class="h-56 relative w-full">
+                        <canvas id="ceMateriasBarChartCanvas"></canvas>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- CARD 7: Ranking de Pontos Fracos por Assunto -->
+                  <template x-if="card.type === 'pontos_fracos'">
+                    <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                      <template x-for="wk in getCEWeakTopics()" :key="wk.key">
+                        <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div class="space-y-1 min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-850 text-sky-300 border border-slate-700" x-text="wk.materia_nome"></span>
+                              <span class="text-[11px] font-mono font-bold" :class="wk.pct < 60 ? 'text-rose-400' : (wk.pct < 75 ? 'text-amber-400' : 'text-emerald-400')" x-text="`${wk.acertos}/${wk.tentativas} (${wk.pct}%)`"></span>
+                            </div>
+                            <p class="text-xs font-bold text-white truncate" x-text="wk.assunto"></p>
+                          </div>
+                          <button @click="estudarAssuntoEspecificoCE(wk.materia_id, wk.assunto)" class="shrink-0 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 text-[11px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">
+                            Treinar
+                          </button>
+                        </div>
+                      </template>
+                      <div x-show="getCEWeakTopics().length === 0" class="py-8 text-center text-xs text-slate-500">
+                        Resolva algumas questões para mapear seus pontos fracos.
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- CARD 8: Aproveitamento Consolidado por Matéria -->
+                  <template x-if="card.type === 'lista_materias'">
+                    <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                      <template x-for="ms in getCEMateriaStats()" :key="ms.materia_id || ms.materia_nome">
+                        <div @click="estudarMateriaEspecificaCE(ms.materia_id)" class="bg-slate-950/90 border border-slate-800 hover:border-sky-500/50 rounded-xl p-3 space-y-1.5 cursor-pointer transition">
+                          <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-white truncate" x-text="ms.materia_nome"></span>
+                            <span class="text-xs font-mono font-extrabold" :class="ms.pct >= 75 ? 'text-emerald-400' : (ms.pct >= 55 ? 'text-amber-400' : 'text-rose-400')" x-text="ms.tentativas > 0 ? ms.pct + '%' : 'Inédita'"></span>
+                          </div>
+                          <div class="flex justify-between text-[11px] font-mono text-slate-400">
+                            <span x-text="`${ms.totalQuestoes} questões`"></span>
+                            <span x-text="`✓ ${ms.acertos} | ✕ ${ms.erros}`"></span>
+                          </div>
+                          <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full" :class="ms.pct >= 75 ? 'bg-emerald-500' : (ms.pct >= 55 ? 'bg-amber-500' : 'bg-rose-500')" :style="`width: ${ms.pct}%`"></div>
+                          </div>
+                        </div>
+                      </template>
+                      <div x-show="getCEMateriaStats().length === 0" class="py-8 text-center text-xs text-slate-500">
+                        Nenhuma questão cadastrada no banco.
+                      </div>
+                    </div>
+                  </template>
+
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- ==================== MODO 2: HUB DE ESCOLHA DE TREINO E FILTROS AVANÇADOS ==================== -->
+          <div x-show="ceMode === 'escolher_treino'" class="space-y-6 max-w-5xl mx-auto">
+            
+            <!-- Botões Rápidos de Modalidade de Estudo -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-5 shadow-xl">
+              <div class="border-b border-slate-800 pb-3">
+                <h3 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                  <i data-lucide="compass" class="w-5 h-5 text-emerald-400"></i>
+                  <span>Como você deseja resolver as questões hoje?</span>
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">Escolha um atalho rápido abaixo ou combine múltiplos filtros personalizados.</p>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                
+                <!-- Opção 1: Não Resolvidas Geral -->
+                <button @click="iniciarModoTreinoCE('nunca_vistas')"
+                        class="bg-slate-950/90 hover:bg-sky-950/50 border border-slate-800 hover:border-sky-400 rounded-xl p-4 text-left space-y-2 transition group cursor-pointer">
+                  <div class="flex items-center justify-between">
+                    <span class="p-2 rounded-lg bg-sky-500/20 text-sky-400"><i data-lucide="sparkles" class="w-5 h-5"></i></span>
+                    <span class="text-xs font-mono font-bold text-sky-300 bg-sky-500/10 px-2 py-0.5 rounded" x-text="getCECountByMode('nunca_vistas') + ' questões'"></span>
+                  </div>
+                  <div class="font-extrabold text-sm text-white group-hover:text-sky-300">Não Resolvidas (Geral)</div>
+                  <p class="text-xs text-slate-400">Questões inéditas de todas as matérias que você ainda não respondeu.</p>
+                </button>
+
+                <!-- Opção 2: Só as Erradas / Caderno de Erros -->
+                <button @click="iniciarModoTreinoCE('caderno_erros')"
+                        class="bg-slate-950/90 hover:bg-rose-950/50 border border-slate-800 hover:border-rose-400 rounded-xl p-4 text-left space-y-2 transition group cursor-pointer">
+                  <div class="flex items-center justify-between">
+                    <span class="p-2 rounded-lg bg-rose-500/20 text-rose-400"><i data-lucide="book-x" class="w-5 h-5"></i></span>
+                    <span class="text-xs font-mono font-bold text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded" x-text="getCEErrorNotebookCount() + ' questões'"></span>
+                  </div>
+                  <div class="font-extrabold text-sm text-white group-hover:text-rose-300">Só as Erradas (Caderno de Erros)</div>
+                  <p class="text-xs text-slate-400">Ataque direto nas assertivas que você errou ou tem aproveitamento baixo.</p>
+                </button>
+
+                <!-- Opção 3: Pontos Fracos Críticos -->
+                <button @click="iniciarModoTreinoCE('pontos_fracos')"
+                        class="bg-slate-950/90 hover:bg-amber-950/50 border border-slate-800 hover:border-amber-400 rounded-xl p-4 text-left space-y-2 transition group cursor-pointer">
+                  <div class="flex items-center justify-between">
+                    <span class="p-2 rounded-lg bg-amber-500/20 text-amber-400"><i data-lucide="flame" class="w-5 h-5"></i></span>
+                    <span class="text-xs font-mono font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded" x-text="getCECountByMode('pontos_fracos') + ' questões'"></span>
+                  </div>
+                  <div class="font-extrabold text-sm text-white group-hover:text-amber-300">Pontos Fracos (Assuntos &lt; 65%)</div>
+                  <p class="text-xs text-slate-400">Filtra automaticamente as questões dos assuntos em que seu rendimento está crítico.</p>
+                </button>
+
+                <!-- Opção 4: Por Matéria Específica -->
+                <button @click="ceFilterStatus = 'todas'; $refs.ceSelectMateriaHub.focus()"
+                        class="bg-slate-950/90 hover:bg-indigo-950/50 border border-slate-800 hover:border-indigo-400 rounded-xl p-4 text-left space-y-2 transition group cursor-pointer">
+                  <div class="flex items-center justify-between">
+                    <span class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400"><i data-lucide="book-open" class="w-5 h-5"></i></span>
+                    <span class="text-xs font-mono font-bold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded" x-text="materias.length + ' matérias'"></span>
+                  </div>
+                  <div class="font-extrabold text-sm text-white group-hover:text-indigo-300">Por Matéria / Assunto</div>
+                  <p class="text-xs text-slate-400">Selecione uma disciplina e tópicos específicos nos filtros abaixo.</p>
+                </button>
+
+                <!-- Opção 5: Simulado Geral Embaralhado -->
+                <button @click="iniciarModoTreinoCE('todas', true)"
+                        class="bg-slate-950/90 hover:bg-emerald-950/50 border border-slate-800 hover:border-emerald-400 rounded-xl p-4 text-left space-y-2 transition group cursor-pointer">
+                  <div class="flex items-center justify-between">
+                    <span class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400"><i data-lucide="shuffle" class="w-5 h-5"></i></span>
+                    <span class="text-xs font-mono font-bold text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded" x-text="flashcardsCE.length + ' questões'"></span>
+                  </div>
+                  <div class="font-extrabold text-sm text-white group-hover:text-emerald-300">Simulado Geral Aleatório</div>
+                  <p class="text-xs text-slate-400">Todas as questões do banco embaralhadas em estilo prova.</p>
+                </button>
+
+                <!-- Opção 6: Revisão de Dominadas -->
+                <button @click="iniciarModoTreinoCE('dominadas')"
+                        class="bg-slate-950/90 hover:bg-teal-950/50 border border-slate-800 hover:border-teal-400 rounded-xl p-4 text-left space-y-2 transition group cursor-pointer">
+                  <div class="flex items-center justify-between">
+                    <span class="p-2 rounded-lg bg-teal-500/20 text-teal-400"><i data-lucide="shield-check" class="w-5 h-5"></i></span>
+                    <span class="text-xs font-mono font-bold text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded" x-text="getCECountByMode('dominadas') + ' questões'"></span>
+                  </div>
+                  <div class="font-extrabold text-sm text-white group-hover:text-teal-300">Manutenção (Dominadas)</div>
+                  <p class="text-xs text-slate-400">Questões que você já acertou mais vezes do que errou, para fixação.</p>
+                </button>
+              </div>
+            </div>
+
+            <!-- Painel de Filtros Combinados Personalizados -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xl">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h4 class="text-sm font-extrabold text-white flex items-center gap-2">
+                  <i data-lucide="filter" class="w-4 h-4 text-sky-400"></i>
+                  <span>Filtros Personalizados Avançados</span>
+                </h4>
+                <button @click="resetCEFilters()" class="text-xs text-slate-400 hover:text-white underline cursor-pointer">Limpar Filtros</button>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1">Matéria:</label>
+                  <select x-ref="ceSelectMateriaHub" x-model="ceFilterMateria" @change="ceFilterAssunto = 'todos'" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <option value="todas">Todas as Matérias</option>
+                    <template x-for="m in materias" :key="'hubm_' + m.id">
+                      <option :value="m.id" x-text="m.nome"></option>
+                    </template>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1">Assunto / Tópico:</label>
+                  <select x-model="ceFilterAssunto" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <option value="todos">Todos os Assuntos</option>
+                    <template x-for="ass in getAvailableCEAssuntosForFilter()" :key="'huba_' + ass">
+                      <option :value="ass" x-text="ass"></option>
+                    </template>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1">Situação das Questões:</label>
+                  <select x-model="ceFilterStatus" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <option value="todas">Todas</option>
+                    <option value="nunca_vistas">Não Resolvidas (Inéditas)</option>
+                    <option value="caderno_erros">Caderno de Erros</option>
+                    <option value="pontos_fracos">Pontos Fracos (Assuntos &lt; 65%)</option>
+                    <option value="erradas">Erradas / Não Dominadas</option>
+                    <option value="dominadas">Dominadas</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1">Gabarito / Palavra-chave:</label>
+                  <div class="flex gap-2">
+                    <select x-model="ceFilterGabarito" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                      <option value="todos">C/E</option>
+                      <option value="C">Só Certo</option>
+                      <option value="E">Só Errado</option>
+                    </select>
+                    <input type="text" x-model="ceSearchText" placeholder="Buscar termo..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800/80">
+                <label class="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+                  <input type="checkbox" x-model="ceShuffleOnStart" class="rounded bg-slate-950 border-slate-700 text-sky-500 focus:ring-0 w-4 h-4">
+                  <span>Embaralhar ordem das questões ao iniciar</span>
+                </label>
+
+                <button @click="ceMode = 'revisao'; ceShuffleOnStart ? embaralharCE() : iniciarRevisaoCE()"
+                        class="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-6 py-3 rounded-xl flex items-center space-x-2 shadow-lg shadow-emerald-600/25 transition cursor-pointer">
+                  <i data-lucide="play-circle" class="w-4 h-4"></i>
+                  <span>Iniciar Resolução (<span x-text="getFilteredCE().length"></span> questões)</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ==================== MODO 3: TELA DE RESOLUÇÃO DE QUESTÕES ==================== -->
+          <div x-show="ceMode === 'revisao'" class="space-y-4">
+            
+            <!-- Barra Superior do Treino Ativo -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 max-w-4xl mx-auto">
+              <div class="flex flex-wrap items-center gap-2 text-xs">
+                <button @click="ceMode = 'escolher_treino'; refreshIcons()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1 border border-slate-700 cursor-pointer">
+                  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                  <span>Trocar Filtro / Modo</span>
+                </button>
+                <span class="text-slate-400">Filtro ativo: <strong class="text-sky-300" x-text="getCEActiveFilterSummary()"></strong></span>
+              </div>
+
+              <button @click="embaralharCE()" class="bg-slate-850 hover:bg-slate-800 text-sky-300 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1 cursor-pointer">
+                <i data-lucide="shuffle" class="w-3.5 h-3.5"></i>
+                <span>Embaralhar Fila</span>
               </button>
             </div>
 
             <template x-if="ceFilaRevisao.length === 0">
               <div class="bg-slate-900/80 rounded-2xl p-10 border border-dashed border-slate-800 text-center space-y-3 max-w-4xl mx-auto">
-                <p class="text-slate-300 text-sm font-semibold">Nenhuma questão encontrada para os filtros atuais.</p>
+                <p class="text-slate-300 text-sm font-semibold">Nenhuma questão encontrada para os filtros selecionados.</p>
                 <div class="flex flex-wrap justify-center gap-2">
-                  <button @click="ceFilterMateria = 'todas'; ceFilterAssunto = 'todos'; ceFilterStatus = 'todas'; iniciarRevisaoCE()" class="bg-slate-800 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl inline-flex items-center space-x-1.5 border border-slate-700 cursor-pointer">
-                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                    <span>Mostrar Todas</span>
-                  </button>
-                  <button @click="ceMode = 'importar'; refreshIcons()" class="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl inline-flex items-center space-x-1.5 cursor-pointer">
-                    <i data-lucide="sparkles" class="w-4 h-4"></i>
-                    <span>Importar Questões via IA</span>
+                  <button @click="ceMode = 'escolher_treino'; resetCEFilters(); refreshIcons()" class="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl inline-flex items-center space-x-1.5 cursor-pointer">
+                    <i data-lucide="filter" class="w-3.5 h-3.5"></i>
+                    <span>Escolher Outro Filtro</span>
                   </button>
                 </div>
               </div>
@@ -1309,7 +1596,6 @@
             <template x-if="ceFilaRevisao.length > 0 && ceCardAtual">
               <div class="bg-slate-900/90 rounded-2xl p-5 sm:p-8 border border-slate-800 shadow-xl space-y-6 max-w-4xl mx-auto">
                 
-                <!-- Topo do Card: Progresso + Matéria + Assunto + Histórico -->
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-4">
                   <div class="flex flex-wrap items-center gap-2">
                     <span class="px-2.5 py-1 rounded-lg bg-slate-850 text-sky-300 border border-slate-700 text-xs font-bold flex items-center space-x-1.5">
@@ -1318,22 +1604,20 @@
                     </span>
                     <span x-show="ceCardAtual.assunto" class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 text-xs font-medium" x-text="ceCardAtual.assunto"></span>
                     <span x-show="isCECardWeak(ceCardAtual)" class="px-2 py-0.5 rounded bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[10px] font-bold">
-                      Ponto Fraco / Erro
+                      Caderno de Erros
                     </span>
                   </div>
                   <div class="flex items-center gap-3 text-xs font-bold font-mono">
-                    <span class="text-emerald-400" title="Acertos nesta questão">✓ <span x-text="ceCardAtual.acertos || 0"></span></span>
-                    <span class="text-rose-400" title="Erros nesta questão">✕ <span x-text="ceCardAtual.erros || 0"></span></span>
+                    <span class="text-emerald-400">✓ <span x-text="ceCardAtual.acertos || 0"></span></span>
+                    <span class="text-rose-400">✕ <span x-text="ceCardAtual.erros || 0"></span></span>
                     <span class="text-slate-400 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">Questão <span x-text="ceIndexAtual + 1"></span> / <span x-text="ceFilaRevisao.length"></span></span>
                   </div>
                 </div>
 
-                <!-- Enunciado da Assertiva -->
                 <div class="py-4 px-2">
                   <p class="text-base sm:text-lg font-medium text-white leading-relaxed whitespace-pre-line" x-text="ceCardAtual.enunciado"></p>
                 </div>
 
-                <!-- Botões de Resposta (Antes de responder) -->
                 <div x-show="!ceRespondido" class="grid grid-cols-2 gap-4 pt-2">
                   <button @click="responderCE('C')" 
                           class="py-4 rounded-xl bg-emerald-600/20 hover:bg-emerald-600 border-2 border-emerald-500 text-emerald-300 hover:text-white font-black text-base tracking-wide transition-all cursor-pointer">
@@ -1345,7 +1629,6 @@
                   </button>
                 </div>
 
-                <!-- Gabarito Comentado + Navegação (Após responder) -->
                 <div x-show="ceRespondido" class="space-y-4 pt-2">
                   <div :class="ceAcertouUltimo ? 'bg-emerald-950/60 border-emerald-500 text-emerald-200' : 'bg-rose-950/60 border-rose-500 text-rose-200'"
                        class="p-4 rounded-xl border-l-4 space-y-2">
@@ -1375,143 +1658,8 @@
             </template>
           </div>
 
-          <!-- ==================== MODO 2: PAINEL DE ESTATÍSTICAS & PONTOS FRACOS ==================== -->
-          <div x-show="ceMode === 'painel'" class="space-y-6">
-            
-            <!-- Cards de Métricas Gerais do Banco C/E -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-1.5">
-                <span class="text-xs text-slate-400 font-semibold">Total de Resoluções</span>
-                <div class="text-2xl font-black text-white" x-text="getCEOverallStats().totalTentativas"></div>
-                <p class="text-[11px] text-slate-400" x-text="`${flashcardsCE.length} questões cadastradas no banco`"></p>
-              </div>
-
-              <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-1.5">
-                <span class="text-xs text-slate-400 font-semibold">Acertos Totais</span>
-                <div class="flex items-baseline gap-2">
-                  <span class="text-2xl font-black text-emerald-400" x-text="getCEOverallStats().acertos"></span>
-                  <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300" x-text="getCEOverallStats().pctAcerto + '%'"></span>
-                </div>
-                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
-                  <div class="bg-emerald-500 h-full rounded-full" :style="`width: ${getCEOverallStats().pctAcerto}%`"></div>
-                </div>
-              </div>
-
-              <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-1.5">
-                <span class="text-xs text-slate-400 font-semibold">Erros Totais</span>
-                <div class="flex items-baseline gap-2">
-                  <span class="text-2xl font-black text-rose-400" x-text="getCEOverallStats().erros"></span>
-                  <span class="text-xs font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300" x-text="getCEOverallStats().pctErro + '%'"></span>
-                </div>
-                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
-                  <div class="bg-rose-500 h-full rounded-full" :style="`width: ${getCEOverallStats().pctErro}%`"></div>
-                </div>
-              </div>
-
-              <div class="bg-slate-900/80 border border-rose-500/40 p-4 rounded-xl flex flex-col justify-between space-y-2">
-                <div>
-                  <span class="text-xs text-rose-300 font-bold">Caderno de Erros</span>
-                  <div class="text-2xl font-black text-white" x-text="getCEErrorNotebookCount() + ' questões'"></div>
-                </div>
-                <button @click="iniciarCadernoErrosCE()" class="w-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center space-x-1.5 transition cursor-pointer">
-                  <i data-lucide="play" class="w-3.5 h-3.5"></i>
-                  <span>Estudar Caderno de Erros</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Diagnóstico de Pontos Fracos por Assunto + Desempenho por Matéria -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              
-              <!-- Pontos Fracos Críticos (Assuntos com menor aproveitamento) -->
-              <div class="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <div>
-                    <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
-                      <i data-lucide="flame" class="w-4 h-4 text-rose-400"></i>
-                      <span>Diagnóstico de Pontos Fracos (Por Assunto)</span>
-                    </h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Assuntos ordenados do menor para o maior índice de acerto.</p>
-                  </div>
-                </div>
-
-                <div class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
-                  <template x-for="wk in getCEWeakTopics()" :key="wk.key">
-                    <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div class="space-y-1.5 min-w-0 flex-1">
-                        <div class="flex flex-wrap items-center gap-2">
-                          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-850 text-sky-300 border border-slate-700" x-text="wk.materia_nome"></span>
-                          <span class="text-[11px] font-mono font-bold"
-                                :class="wk.pct < 60 ? 'text-rose-400' : (wk.pct < 75 ? 'text-amber-400' : 'text-emerald-400')"
-                                x-text="`${wk.acertos}/${wk.tentativas} acertos (${wk.pct}%) • ${wk.erros} erro(s)`"></span>
-                        </div>
-                        <p class="text-xs font-bold text-white truncate" x-text="wk.assunto"></p>
-                        <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
-                          <div class="h-full rounded-full"
-                               :class="wk.pct < 60 ? 'bg-rose-500' : (wk.pct < 75 ? 'bg-amber-500' : 'bg-emerald-500')"
-                               :style="`width: ${wk.pct}%`"></div>
-                        </div>
-                      </div>
-
-                      <button @click="estudarAssuntoEspecificoCE(wk.materia_id, wk.assunto)"
-                              class="shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center justify-center space-x-1.5 transition cursor-pointer">
-                        <i data-lucide="target" class="w-3.5 h-3.5"></i>
-                        <span>Treinar Ponto Fraco</span>
-                      </button>
-                    </div>
-                  </template>
-
-                  <div x-show="getCEWeakTopics().length === 0" class="py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
-                    Responda algumas questões primeiro para gerar o ranking de pontos fracos por assunto!
-                  </div>
-                </div>
-              </div>
-
-              <!-- Desempenho Consolidado por Matéria -->
-              <div class="lg:col-span-5 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
-                <div class="border-b border-slate-800 pb-3">
-                  <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
-                    <i data-lucide="pie-chart" class="w-4 h-4 text-sky-400"></i>
-                    <span>Aproveitamento por Matéria</span>
-                  </h3>
-                  <p class="text-xs text-slate-400 mt-0.5">Clique em qualquer matéria para praticá-la agora.</p>
-                </div>
-
-                <div class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
-                  <template x-for="ms in getCEMateriaStats()" :key="ms.materia_id || ms.materia_nome">
-                    <div @click="estudarMateriaEspecificaCE(ms.materia_id)"
-                         class="bg-slate-950/90 border border-slate-800 hover:border-sky-500/50 rounded-xl p-3.5 space-y-2 cursor-pointer transition">
-                      <div class="flex items-center justify-between gap-2">
-                        <span class="text-xs font-bold text-white truncate" x-text="ms.materia_nome"></span>
-                        <span class="text-xs font-mono font-extrabold px-2 py-0.5 rounded"
-                              :class="ms.pct >= 75 ? 'bg-emerald-500/20 text-emerald-300' : (ms.pct >= 55 ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300')"
-                              x-text="ms.tentativas > 0 ? ms.pct + '%' : 'Sem treino'"></span>
-                      </div>
-                      <div class="flex justify-between text-[11px] font-mono text-slate-400">
-                        <span x-text="`${ms.totalQuestoes} questões no banco`"></span>
-                        <span x-text="`✓ ${ms.acertos} | ✕ ${ms.erros}`"></span>
-                      </div>
-                      <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
-                        <div class="h-full rounded-full"
-                             :class="ms.pct >= 75 ? 'bg-emerald-500' : (ms.pct >= 55 ? 'bg-amber-500' : 'bg-rose-500')"
-                             :style="`width: ${ms.pct}%`"></div>
-                      </div>
-                    </div>
-                  </template>
-
-                  <div x-show="getCEMateriaStats().length === 0" class="py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
-                    Nenhuma questão cadastrada ainda.
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- ==================== MODO 3: IMPORTAÇÃO EM MASSA & MODELO PARA IA ==================== -->
+          <!-- ==================== MODO 4: IMPORTAÇÃO EM MASSA & MODELO PARA IA ==================== -->
           <div x-show="ceMode === 'importar'" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            <!-- Coluna Esquerda: Extrair Modelo/Prompt para Agentes de IA -->
             <div class="lg:col-span-5 bg-slate-900/80 rounded-2xl p-5 border border-slate-800 space-y-4 h-fit">
               <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="text-xs font-extrabold text-white uppercase tracking-wider flex items-center gap-2">
@@ -1521,7 +1669,7 @@
               </div>
 
               <p class="text-xs text-slate-300 leading-relaxed">
-                Copie o prompt estruturado abaixo (ou baixe o arquivo <code>.txt</code>) e cole no ChatGPT, Claude ou Gemini junto com o seu PDF/lei seca. A IA devolverá as questões exatamente no formato pronto para importar aqui!
+                Copie o prompt estruturado abaixo (ou baixe o arquivo <code>.txt</code>) e cole no ChatGPT, Claude ou Gemini junto com o seu PDF/lei seca.
               </p>
 
               <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] font-mono text-sky-200 whitespace-pre-wrap max-h-64 overflow-y-auto leading-relaxed" x-text="getCEAIModelPrompt()"></div>
@@ -1538,7 +1686,6 @@
               </div>
             </div>
 
-            <!-- Coluna Direita: Escolher Matéria, Selecionar Assuntos e Importar em Massa -->
             <div class="lg:col-span-7 bg-slate-900/80 rounded-2xl p-5 border border-slate-800 space-y-4">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
                 <h3 class="text-xs font-extrabold text-white uppercase tracking-wider flex items-center gap-2">
@@ -1552,7 +1699,6 @@
                 <input type="file" x-ref="ceJsonFileInput" @change="carregarArquivoCE($event)" accept=".json,.txt" class="hidden">
               </div>
 
-              <!-- Passo A: Escolher Matéria de Destino -->
               <div>
                 <label class="block text-xs font-bold text-slate-200 mb-1">Matéria de Destino *</label>
                 <select x-model="ceImportMateriaId" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500">
@@ -1563,7 +1709,6 @@
                 </select>
               </div>
 
-              <!-- Passo B: Colar o JSON gerado pela IA -->
               <div>
                 <label class="block text-xs font-bold text-slate-200 mb-1">Cole o JSON gerado pela IA *</label>
                 <textarea x-model="ceImportRawText" @input="analisarLoteCE()" rows="6"
@@ -1572,7 +1717,6 @@
                 <p x-show="ceImportError" class="text-xs text-rose-400 font-semibold mt-1" x-text="ceImportError"></p>
               </div>
 
-              <!-- Passo C: Seleção de Assuntos Antes de Confirmar a Importação -->
               <template x-if="ceImportParsedList.length > 0">
                 <div class="bg-slate-950/90 border border-sky-500/40 rounded-xl p-4 space-y-3">
                   <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
@@ -1613,13 +1757,10 @@
                 </div>
               </template>
             </div>
-
           </div>
 
-          <!-- ==================== MODO 4: CRIAÇÃO MANUAL E BANCO DE ASSERTIVAS ==================== -->
+          <!-- ==================== MODO 5: CRIAÇÃO MANUAL E GERENCIAMENTO DO BANCO ==================== -->
           <div x-show="ceMode === 'gerenciar'" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            <!-- Formulário de Cadastro / Edição -->
             <div class="lg:col-span-5 bg-slate-900/80 rounded-2xl p-5 border border-slate-800 space-y-4 h-fit">
               <h3 class="text-xs font-extrabold text-white uppercase tracking-wider flex items-center space-x-2">
                 <i data-lucide="edit-3" class="w-4 h-4 text-sky-400"></i>
@@ -1674,7 +1815,7 @@
 
               <div>
                 <label class="block text-xs font-semibold text-slate-300 mb-1">Justificativa / Fundamentação Legal</label>
-                <textarea x-model="ceForm.justificativa" rows="3" placeholder="Explique o porquê (ex: Errado, pois o prazo é de 5 anos contados do primeiro dia do exercício seguinte...)"
+                <textarea x-model="ceForm.justificativa" rows="3" placeholder="Explique o porquê..."
                           class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"></textarea>
               </div>
 
@@ -1688,12 +1829,19 @@
               </div>
             </div>
 
-            <!-- Lista das Assertivas Cadastradas -->
             <div class="lg:col-span-7 space-y-3">
               <div class="bg-slate-900/80 rounded-2xl p-4 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <span class="text-xs font-extrabold text-white uppercase">Assertivas Salvas (<span x-text="getFilteredCE().length"></span>)</span>
-                <input type="text" x-model="ceSearchText" placeholder="Buscar no enunciado ou assunto..."
-                       class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white w-full sm:w-64 focus:outline-none focus:border-indigo-500">
+                <div class="flex gap-2 w-full sm:w-auto">
+                  <select x-model="ceFilterMateria" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                    <option value="todas">Todas Matérias</option>
+                    <template x-for="m in materias" :key="'gmat_' + m.id">
+                      <option :value="m.id" x-text="m.nome"></option>
+                    </template>
+                  </select>
+                  <input type="text" x-model="ceSearchText" placeholder="Buscar..."
+                         class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white w-full sm:w-48 focus:outline-none focus:border-indigo-500">
+                </div>
               </div>
 
               <div class="space-y-2.5 max-h-[650px] overflow-y-auto pr-1">
@@ -1717,14 +1865,10 @@
                     <p x-show="item.justificativa" class="text-[11px] text-slate-300 italic border-t border-slate-800 pt-1.5 whitespace-pre-line" x-text="item.justificativa"></p>
                   </div>
                 </template>
-
-                <div x-show="getFilteredCE().length === 0" class="py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
-                  Nenhuma assertiva cadastrada ainda. Use o formulário ao lado ou importe em massa via IA!
-                </div>
               </div>
             </div>
-
           </div>
+
         </div>
 
         <!-- ==================== TAB 5: GARGALOS ==================== -->
@@ -2246,6 +2390,38 @@
     </div>
   </div>
 
+  <!-- MODAL EDITAR CARD DO PAINEL C/E -->
+  <div x-show="showEditCECardModal" x-cloak class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 w-full max-w-md space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <h3 class="font-bold text-slate-100 text-base">Personalizar Card</h3>
+        <button @click="showEditCECardModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">Título do Card</label>
+          <input type="text" x-model="editingCECardTitle" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">Largura na Tela</label>
+          <select x-model="editingCECardSpan" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+            <option value="quarter">Compacto (1/4 da linha)</option>
+            <option value="half">Médio (1/2 da linha)</option>
+            <option value="full">Largo (Linha inteira)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">Cor da Borda Superior</label>
+          <input type="color" x-model="editingCECardAccent" class="w-full h-9 bg-slate-950 border border-slate-800 rounded-lg cursor-pointer">
+        </div>
+      </div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button @click="showEditCECardModal = false" class="px-3.5 py-1.5 text-xs text-slate-400 hover:text-slate-200">Cancelar</button>
+        <button @click="saveEditCECardModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-lg text-xs font-semibold">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Lógica do Aplicativo -->
   <script>
     const SUPABASE_URL = 'https://niyvnlrjbwcjglohlwwb.supabase.co';
@@ -2389,10 +2565,12 @@
         gargalos: [],
         flashcardsCE: [],
 
-        ceMode: 'revisao',
+        ceMode: 'painel',
         ceFilterMateria: 'todas',
         ceFilterAssunto: 'todos',
         ceFilterStatus: 'todas',
+        ceFilterGabarito: 'todos',
+        ceShuffleOnStart: false,
         ceSearchText: '',
         ceFilaRevisao: [],
         ceIndexAtual: 0,
@@ -2400,6 +2578,25 @@
         ceAcertouUltimo: false,
         ceForm: { id: null, materia_id: '', assunto: '', enunciado: '', gabarito: 'C', justificativa: '' },
         get ceCardAtual() { return this.ceFilaRevisao[this.ceIndexAtual] || null; },
+
+        ceDashboardCards: [
+          { id: 'c_total', type: 'kpi_total', title: 'Total de Resoluções', span: 'quarter', accent: '#38bdf8', hidden: false },
+          { id: 'c_acertos', type: 'kpi_acertos', title: 'Acertos Totais', span: 'quarter', accent: '#10b981', hidden: false },
+          { id: 'c_erros', type: 'kpi_erros', title: 'Erros Totais', span: 'quarter', accent: '#f43f5e', hidden: false },
+          { id: 'c_liquido', type: 'kpi_liquido', title: 'Saldo Líquido (CEBRASPE)', span: 'quarter', accent: '#818cf8', hidden: false },
+          { id: 'c_chart_pizza', type: 'chart_pizza', title: 'Gráfico: Proporção Acertos vs Erros', span: 'half', accent: '#34d399', hidden: false },
+          { id: 'c_chart_mat', type: 'chart_materias', title: 'Gráfico: Aproveitamento por Matéria (%)', span: 'half', accent: '#38bdf8', hidden: false },
+          { id: 'c_weak', type: 'pontos_fracos', title: 'Diagnóstico de Pontos Fracos', span: 'half', accent: '#fb7185', hidden: false },
+          { id: 'c_mats', type: 'lista_materias', title: 'Desempenho por Matéria', span: 'half', accent: '#60a5fa', hidden: false }
+        ],
+        draggedCECardIdx: null,
+        showEditCECardModal: false,
+        editingCECardId: null,
+        editingCECardTitle: '',
+        editingCECardSpan: 'quarter',
+        editingCECardAccent: '#38bdf8',
+        ceDoughnutChart: null,
+        ceMateriasBarChart: null,
 
         cePromptCopiado: false,
         ceImportMateriaId: '',
@@ -2483,6 +2680,9 @@
           this.$watch('flashcardsCE', () => { if (this.isLoaded) this.saveAll(); }, { deep: true });
 
           this.iniciarRevisaoCE();
+          if (this.activeTab === 'banco_ce' && this.ceMode === 'painel') {
+            this.$nextTick(() => this.renderCECharts());
+          }
           this.refreshIcons();
         },
 
@@ -2490,6 +2690,9 @@
           if (tabId === 'estudos') tabId = 'questoes';
           this.activeTab = tabId;
           localStorage.setItem(TAB_KEY, tabId);
+          if (tabId === 'banco_ce' && this.ceMode === 'painel') {
+            this.$nextTick(() => this.renderCECharts());
+          }
           this.refreshIcons();
         },
 
@@ -3006,6 +3209,9 @@
             this.flashcardsCE = loaded.flashcardsCE;
             this.iniciarRevisaoCE();
           }
+          if (loaded.ceDashboardCards && Array.isArray(loaded.ceDashboardCards)) {
+            this.ceDashboardCards = loaded.ceDashboardCards;
+          }
           if (loaded.exams) this.exams = loaded.exams;
           if (loaded.pinnedNotes) {
             this.pinnedNotes = loaded.pinnedNotes.map(n => {
@@ -3048,6 +3254,7 @@
             estudos: this.questoes,
             gargalos: this.gargalos,
             flashcardsCE: this.flashcardsCE,
+            ceDashboardCards: this.ceDashboardCards,
             pinnedNotes: this.pinnedNotes,
             exams: this.exams
           };
@@ -4209,10 +4416,79 @@
           this.iniciarRevisaoCE();
         },
 
+        resetCEFilters() {
+          this.ceFilterMateria = 'todas';
+          this.ceFilterAssunto = 'todos';
+          this.ceFilterStatus = 'todas';
+          this.ceFilterGabarito = 'todos';
+          this.ceSearchText = '';
+        },
+
+        iniciarModoTreinoCE(statusMode, embaralhar = false) {
+          this.resetCEFilters();
+          this.ceFilterStatus = statusMode;
+          this.ceMode = 'revisao';
+          if (embaralhar) {
+            this.embaralharCE();
+          } else {
+            this.iniciarRevisaoCE();
+          }
+        },
+
+        getCECountByMode(statusMode) {
+          const prevStatus = this.ceFilterStatus;
+          const prevMat = this.ceFilterMateria;
+          const prevAss = this.ceFilterAssunto;
+          const prevGab = this.ceFilterGabarito;
+          const prevSearch = this.ceSearchText;
+
+          this.ceFilterMateria = 'todas';
+          this.ceFilterAssunto = 'todos';
+          this.ceFilterGabarito = 'todos';
+          this.ceSearchText = '';
+          this.ceFilterStatus = statusMode;
+
+          const count = this.getFilteredCE().length;
+
+          this.ceFilterStatus = prevStatus;
+          this.ceFilterMateria = prevMat;
+          this.ceFilterAssunto = prevAss;
+          this.ceFilterGabarito = prevGab;
+          this.ceSearchText = prevSearch;
+          return count;
+        },
+
+        getCEActiveFilterSummary() {
+          const labels = {
+            todas: 'Todas as Questões',
+            nunca_vistas: 'Não Resolvidas (Inéditas)',
+            caderno_erros: 'Caderno de Erros',
+            pontos_fracos: 'Pontos Fracos (< 65%)',
+            erradas: 'Erradas / Não Dominadas',
+            dominadas: 'Dominadas'
+          };
+          let txt = labels[this.ceFilterStatus] || 'Personalizado';
+          if (this.ceFilterMateria !== 'todas') {
+            const m = this.materias.find(x => x.id === this.ceFilterMateria);
+            if (m) txt += ` • ${m.nome}`;
+          }
+          if (this.ceFilterAssunto !== 'todos') {
+            txt += ` • ${this.ceFilterAssunto}`;
+          }
+          return txt;
+        },
+
         getFilteredCE() {
+          const weakSet = new Set(
+            this.getCEWeakTopics()
+              .filter(w => w.pct < 65)
+              .map(w => `${w.materia_id}_${w.assunto}`)
+          );
+
           return this.flashcardsCE.filter(item => {
             if (this.ceFilterMateria !== 'todas' && item.materia_id !== this.ceFilterMateria) return false;
             if (this.ceFilterAssunto !== 'todos' && (item.assunto || '').trim() !== this.ceFilterAssunto) return false;
+            if (this.ceFilterGabarito !== 'todos' && item.gabarito !== this.ceFilterGabarito) return false;
 
             const ac = item.acertos || 0;
             const er = item.erros || 0;
@@ -4220,6 +4496,10 @@
             if (this.ceFilterStatus === 'nunca_vistas' && (ac + er) > 0) return false;
             if (this.ceFilterStatus === 'erradas' && ac > er) return false;
             if (this.ceFilterStatus === 'dominadas' && ac <= er) return false;
+            if (this.ceFilterStatus === 'pontos_fracos') {
+              const ass = (item.assunto && item.assunto.trim()) ? item.assunto.trim() : 'Geral / Sem Assunto';
+              if (!weakSet.has(`${item.materia_id || ''}_${ass}`)) return false;
+            }
 
             if (this.ceSearchText.trim()) {
               const q = this.ceSearchText.toLowerCase();
@@ -4234,14 +4514,138 @@
         getCEOverallStats() {
           let acertos = 0;
           let erros = 0;
+          let respondidasUnicas = 0;
+
           this.flashcardsCE.forEach(item => {
-            acertos += (item.acertos || 0);
-            erros += (item.erros || 0);
+            const ac = item.acertos || 0;
+            const er = item.erros || 0;
+            acertos += ac;
+            erros += er;
+            if (ac + er > 0) respondidasUnicas++;
           });
+
           const totalTentativas = acertos + erros;
           const pctAcerto = totalTentativas > 0 ? Math.round((acertos / totalTentativas) * 100) : 0;
           const pctErro = totalTentativas > 0 ? Math.round((erros / totalTentativas) * 100) : 0;
-          return { totalTentativas, acertos, erros, pctAcerto, pctErro };
+          const saldoLiquido = acertos - erros;
+          const pctLiquido = totalTentativas > 0 ? Math.round((saldoLiquido / totalTentativas) * 100) : 0;
+          const nuncaVistas = Math.max(0, this.flashcardsCE.length - respondidasUnicas);
+
+          return { totalTentativas, acertos, erros, pctAcerto, pctErro, saldoLiquido, pctLiquido, respondidasUnicas, nuncaVistas };
+        },
+
+        dropCECard(targetIdx) {
+          if (this.draggedCECardIdx === null || this.draggedCECardIdx === targetIdx) return;
+          const moved = this.ceDashboardCards.splice(this.draggedCECardIdx, 1)[0];
+          this.ceDashboardCards.splice(targetIdx, 0, moved);
+          this.draggedCECardIdx = null;
+          this.saveAll();
+          this.$nextTick(() => this.renderCECharts());
+          this.refreshIcons();
+        },
+
+        toggleCECardVisibility(cardId) {
+          const card = this.ceDashboardCards.find(c => c.id === cardId);
+          if (card) {
+            card.hidden = !card.hidden;
+            this.saveAll();
+            this.$nextTick(() => this.renderCECharts());
+            this.refreshIcons();
+          }
+        },
+
+        openEditCECardModal(card) {
+          this.editingCECardId = card.id;
+          this.editingCECardTitle = card.title;
+          this.editingCECardSpan = card.span || 'quarter';
+          this.editingCECardAccent = card.accent || '#38bdf8';
+          this.showEditCECardModal = true;
+          this.refreshIcons();
+        },
+
+        saveEditCECardModal() {
+          const card = this.ceDashboardCards.find(c => c.id === this.editingCECardId);
+          if (card && this.editingCECardTitle.trim()) {
+            card.title = this.editingCECardTitle.trim();
+            card.span = this.editingCECardSpan;
+            card.accent = this.editingCECardAccent;
+            this.saveAll();
+            this.$nextTick(() => this.renderCECharts());
+          }
+          this.showEditCECardModal = false;
+        },
+
+        resetCEDashboardLayout() {
+          this.ceDashboardCards = [
+            { id: 'c_total', type: 'kpi_total', title: 'Total de Resoluções', span: 'quarter', accent: '#38bdf8', hidden: false },
+            { id: 'c_acertos', type: 'kpi_acertos', title: 'Acertos Totais', span: 'quarter', accent: '#10b981', hidden: false },
+            { id: 'c_erros', type: 'kpi_erros', title: 'Erros Totais', span: 'quarter', accent: '#f43f5e', hidden: false },
+            { id: 'c_liquido', type: 'kpi_liquido', title: 'Saldo Líquido (CEBRASPE)', span: 'quarter', accent: '#818cf8', hidden: false },
+            { id: 'c_chart_pizza', type: 'chart_pizza', title: 'Gráfico: Proporção Acertos vs Erros', span: 'half', accent: '#34d399', hidden: false },
+            { id: 'c_chart_mat', type: 'chart_materias', title: 'Gráfico: Aproveitamento por Matéria (%)', span: 'half', accent: '#38bdf8', hidden: false },
+            { id: 'c_weak', type: 'pontos_fracos', title: 'Diagnóstico de Pontos Fracos', span: 'half', accent: '#fb7185', hidden: false },
+            { id: 'c_mats', type: 'lista_materias', title: 'Desempenho por Matéria', span: 'half', accent: '#60a5fa', hidden: false }
+          ];
+          this.saveAll();
+          this.$nextTick(() => this.renderCECharts());
+          this.refreshIcons();
+        },
+
+        renderCECharts() {
+          const stats = this.getCEOverallStats();
+          const pizzaCanvas = document.getElementById('ceDoughnutChartCanvas');
+          if (pizzaCanvas) {
+            if (this.ceDoughnutChart) this.ceDoughnutChart.destroy();
+            this.ceDoughnutChart = new Chart(pizzaCanvas.getContext('2d'), {
+              type: 'doughnut',
+              data: {
+                labels: ['Acertos', 'Erros'],
+                datasets: [{
+                  data: stats.totalTentativas > 0 ? [stats.acertos, stats.erros] : [1, 0],
+                  backgroundColor: stats.totalTentativas > 0 ? ['#10b981', '#f43f5e'] : ['#1e3a8a', '#1e3a8a'],
+                  borderColor: '#0b1938',
+                  borderWidth: 3
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '68%',
+                plugins: {
+                  legend: { position: 'bottom', labels: { color: '#e0f2fe', font: { size: 11, weight: 'bold' } } }
+                }
+              }
+            });
+          }
+
+          const barCanvas = document.getElementById('ceMateriasBarChartCanvas');
+          if (barCanvas) {
+            if (this.ceMateriasBarChart) this.ceMateriasBarChart.destroy();
+            const matStats = this.getCEMateriaStats().filter(m => m.tentativas > 0);
+            this.ceMateriasBarChart = new Chart(barCanvas.getContext('2d'), {
+              type: 'bar',
+              data: {
+                labels: matStats.map(m => m.materia_nome.length > 16 ? m.materia_nome.slice(0, 16) + '...' : m.materia_nome),
+                datasets: [{
+                  label: '% de Acerto',
+                  data: matStats.map(m => m.pct),
+                  backgroundColor: matStats.map(m => m.pct >= 75 ? '#10b981' : (m.pct >= 55 ? '#f59e0b' : '#f43f5e')),
+                  borderRadius: 6
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  y: { min: 0, max: 100, ticks: { color: '#93c5fd', font: { size: 10 } }, grid: { color: 'rgba(59,130,246,0.15)' } },
+                  x: { ticks: { color: '#e0f2fe', font: { size: 10 } }, grid: { display: false } }
+                },
+                plugins: {
+                  legend: { display: false }
+                }
+              }
+            });
+          }
         },
 
         getCEWeakTopics() {
